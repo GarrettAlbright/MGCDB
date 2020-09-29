@@ -1,0 +1,2 @@
+# Default configuration
+db_location = /var/db/mgcdb.sqlite
