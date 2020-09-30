@@ -5,7 +5,9 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.tomlj.Toml;
@@ -17,7 +19,7 @@ import org.tomlj.TomlParseError;
  *
  */
 public class App {
-  public static void main( String[] args ) {
+  public static void main( String[] args ) throws SQLException {
     // Load settings
     List<String> settingsPaths = new ArrayList<>();
 
@@ -47,7 +49,7 @@ public class App {
             System.err.println("Error parsing config file at path" + settingsPathAbs);
             errors.forEach(err -> System.err.println(err.toString()));
             // TODO non-zero exit codes
-            System.exit(0);
+            System.exit(StatusCodes.CONFIG_FILE_CANT_BE_PARSED);
           }
           else {
             confLoaded = true;
@@ -56,6 +58,7 @@ public class App {
         }
         catch (IOException e) {
           System.err.println("Exception parsing config file at path " + settingsPathAbs);
+          System.exit(StatusCodes.CONFIG_FILE_CANT_BE_PARSED);
         }
       }
     }
@@ -63,21 +66,23 @@ public class App {
     if (!confLoaded) {
       System.err.println("Could not find config file. Giving up.");
       // TODO non-zero exit codes
-      System.exit(0);
+      System.exit(StatusCodes.NO_CONFIG_FILE);
     }
+
+    DBCXN.initWithPath(config.getString("db_location"));
 
     if (args.length == 0) {
       // Start server
       System.out.println("Starting server. (Not really.)");
     }
-    else if (args.length == 1) {
-      switch (args[0]) {
-//        case "taskName":
-//          // ...
-//          break;
-        default:
-          System.out.println("Unknown command: " + args[0]);
+    else {
+      // Run an administrative task.
+      String task = args[0];
+      String[] taskArgs = new String[args.length - 1];
+      for (int argIdx = 1; argIdx < args.length; argIdx++) {
+        taskArgs[argIdx - 1] = args[argIdx];
       }
+      Tasks.invoke(task, taskArgs);
     }
   }
 }
