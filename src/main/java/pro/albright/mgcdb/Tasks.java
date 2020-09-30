@@ -6,6 +6,13 @@ import java.sql.Statement;
 
 public class Tasks {
 
+  /**
+   * Invoke a task.
+   *
+   * @param task The task name
+   * @param params Parameters which the task may need, from the CLI invocation.
+   * @throws SQLException An SQL-related error occurred.
+   */
   public static void invoke(String task, String[] params) throws SQLException {
     switch (task) {
       case "initdb":
@@ -18,6 +25,11 @@ public class Tasks {
     }
   }
 
+  /**
+   * Initialize the database by creating the needed tables.
+   *
+   * @throws SQLException An SQL-related error occurred.
+   */
   private static void initDb() throws SQLException {
     DBCXN.createIfNotExists(true);
     Connection cxn = DBCXN.getCxn();
