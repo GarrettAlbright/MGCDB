@@ -1,4 +1,6 @@
-package pro.albright.mgcdb;
+package pro.albright.mgcdb.Util;
+
+import pro.albright.mgcdb.Util.StatusCodes;
 
 import java.io.IOException;
 import java.sql.Connection;

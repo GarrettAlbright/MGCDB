@@ -1,4 +1,4 @@
-package pro.albright.mgcdb;
+package pro.albright.mgcdb.Util;
 
 public class StatusCodes {
   // Can't find/open a configuration file.
