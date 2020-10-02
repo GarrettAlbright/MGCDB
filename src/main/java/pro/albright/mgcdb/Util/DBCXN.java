@@ -1,7 +1,5 @@
 package pro.albright.mgcdb.Util;
 
-import pro.albright.mgcdb.Util.StatusCodes;
-
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -14,16 +12,13 @@ public class DBCXN {
   private static String path;
 
   /**
-   * Set the path of the DB file (creating it if necessary) and init connection.
-   *
-   * @param pathParam The path to the database file.
+   * Init the connection.
    */
-  public static void initWithPath(String pathParam) {
+  public static void init() {
+    ensurePath();
     try {
-      // https://stackoverflow.com/a/7163455/11023
-      path = pathParam.replaceFirst("^~", System.getProperty("user.home"));
-      createIfNotExists();
-      initConnection();
+      cxn = DriverManager.getConnection("jdbc:sqlite:" + path);
+      cxn.setAutoCommit(false);
     }
     catch (SQLException e) {
       System.err.println("Error when opening database file at " + path + ": " + e.getMessage());
@@ -32,39 +27,16 @@ public class DBCXN {
   }
 
   /**
-   * Init the connection.
-   */
-  public static void initConnection() {
-    try {
-      cxn = DriverManager.getConnection("jdbc:sqlite:" + path);
-      cxn.setAutoCommit(false);
-    }
-    catch (SQLException e) {
-        System.err.println("Error when opening database file at " + path + ": " + e.getMessage());
-        System.exit(StatusCodes.NO_DB_FILE);
-      }
-  }
-
-  /**
    * Return the connection.
    *
    * @return The database connection.
-   * @throws SQLException
+   * @throws SQLException If a SQL-related error occurred.
    */
   public static Connection getCxn() throws SQLException {
     if (cxn == null || !cxn.isValid(5)) {
-      initWithPath(path);
+      init();
     }
     return cxn;
-  }
-
-  /**
-   * Create the database file if it doesn't already exist.
-   *
-   * @throws SQLException
-   */
-  public static void createIfNotExists() throws SQLException {
-    createIfNotExists(false);
   }
 
   /**
@@ -72,12 +44,15 @@ public class DBCXN {
    * if it does.
    *
    * @param deleteIfExists true if the database file should be deleted.
-   * @throws SQLException
+   * @throws SQLException If a SQL-related error occurred.
    */
   public static void createIfNotExists(boolean deleteIfExists) throws SQLException {
+    ensurePath();
     File dbFile = new File(path);
     if (dbFile.exists() && deleteIfExists) {
-      cxn.close();
+      if (cxn != null && !cxn.isClosed()) {
+        cxn.close();
+      }
       dbFile.delete();
     }
     if (!dbFile.exists()) {
@@ -88,6 +63,17 @@ public class DBCXN {
         System.err.println("Error when creating database file at " + path + ": " + e.getMessage());
         System.exit(StatusCodes.NO_DB_FILE);
       }
+    }
+  }
+
+  /**
+   * Ensure the path field is set.
+   */
+  public static void ensurePath() {
+    if (path == null) {
+      // https://stackoverflow.com/a/7163455/11023
+      String untildedPath = Config.get("db_location");
+      path = untildedPath.replaceFirst("^~", System.getProperty("user.home"));
     }
   }
 }

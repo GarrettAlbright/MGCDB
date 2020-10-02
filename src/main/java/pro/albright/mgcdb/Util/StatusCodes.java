@@ -9,4 +9,6 @@ public class StatusCodes {
   public static final int NO_DB_FILE = 3;
   // No handler for a task.
   public static final int NO_TASK_HANDLER = 4;
+  // A required config param is not present in chosen config file.
+  public static final int REQUIRED_CONFIG_PARAM_MISSING = 5;
 }

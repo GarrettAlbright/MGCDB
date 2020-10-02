@@ -1,2 +1,7 @@
 # Default configuration
+
+# Location where the database file should be
 db_location = "~/mgcdb.sqlite"
+
+# Steam API key
+steam_key = ""
