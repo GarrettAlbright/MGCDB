@@ -32,9 +32,15 @@ public class DBCXN {
    * @return The database connection.
    * @throws SQLException If a SQL-related error occurred.
    */
-  public static Connection getCxn() throws SQLException {
-    if (cxn == null || !cxn.isValid(5)) {
-      init();
+  public static Connection getCxn() {
+    try {
+      if (cxn == null || !cxn.isValid(5)) {
+        init();
+      }
+    }
+    catch (SQLException e) {
+      System.err.println("Error when validating connection to file at " + path + ": " + e.getMessage());
+      System.exit(StatusCodes.NO_DB_FILE);
     }
     return cxn;
   }
@@ -76,4 +82,8 @@ public class DBCXN {
       path = untildedPath.replaceFirst("^~", System.getProperty("user.home"));
     }
   }
+
+  /**
+   * Close the connectiopn
+   */
 }
