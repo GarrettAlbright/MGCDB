@@ -6,7 +6,7 @@ import org.apache.http.client.fluent.Request;
 import org.apache.http.client.utils.URIBuilder;
 import pro.albright.mgcdb.Model.Game;
 import pro.albright.mgcdb.SteamAPIModel.GetAppListResponseWrapper;
-import pro.albright.mgcdb.SteamAPIModel.SteamApp;
+import pro.albright.mgcdb.SteamAPIModel.GetAppListApp;
 import spark.utils.IOUtils;
 
 import java.io.IOException;
@@ -63,7 +63,7 @@ public class SteamCxn {
       return new Game[] {};
     }
 
-    for (SteamApp app : responseBean.getResponse().getApps()) {
+    for (GetAppListApp app : responseBean.getResponse().getApps()) {
       // Double check that we don't already have the game in the DB.
       if (!Game.existsBySteamId(app.getAppid())) {
         Game game = Game.createFromSteamAppBean(app);

@@ -54,8 +54,15 @@ public class Tasks {
       // SQLite does not actually enforce field character lengths but I'm gonna
       // use them anyway
       "title VARCHAR(255) NOT NULL DEFAULT '', " +
+      // Game.GamePropStatus enum - Mac compatibility
+      "mac INTEGER NOT NULL DEFAULT 0, " +
+      // Game.GamePropStatus enum - 64-bit Intel (Catalina) compatibility
+      "sixtyfour INTEGER NOT NULL DEFAULT 0, " +
+      // Game.GamePropStatus enum - Apple Silicon compatibility
+      "silicon INTEGER NOT NULL DEFAULT 0, " +
       "created TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, " +
-      "updated TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)";
+      "updated TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, " +
+      "steam_updated TEXT NOT NULL DEFAULT '0000-01-01 00:00:00')";
     String createGamesTriggerQuery = "CREATE TRIGGER update_games " +
       "AFTER UPDATE ON games FOR EACH ROW BEGIN " +
       "UPDATE games SET last_updated = CURRENT_TIMESTAMP WHERE game_id = OLD.game_id; " +
@@ -75,7 +82,7 @@ public class Tasks {
   private static void newGames(int limit) {
     Game[] newGames = Game.getNewGamesFromSteam(limit);
     for (Game newGame : newGames) {
-      System.out.printf("Saving new game %s (%d) (not really)%n", newGame.getTitle(), newGame.getSteamId());
+      System.out.printf("Saving new game %s (%d)%n", newGame.getTitle(), newGame.getSteamId());
       newGame.save();
     }
     System.out.println("Finished fetching new games.");

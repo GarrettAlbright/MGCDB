@@ -1,6 +1,6 @@
 package pro.albright.mgcdb.Model;
 
-import pro.albright.mgcdb.SteamAPIModel.SteamApp;
+import pro.albright.mgcdb.SteamAPIModel.GetAppListApp;
 import pro.albright.mgcdb.Util.DBCXN;
 import pro.albright.mgcdb.Util.StatusCodes;
 import pro.albright.mgcdb.Util.SteamCxn;
@@ -12,6 +12,17 @@ import java.util.Date;
  * Bean class to encapsulate a game.
  */
 public class Game implements java.io.Serializable {
+
+  enum GamePropStatus {
+    UNCHECKED(0),
+    NO(1),
+    YES(2);
+
+    private int value;
+    GamePropStatus(int i) {
+      this.value = i;
+    }
+  }
   /**
    * The MGCDB game ID.
    */
@@ -30,6 +41,21 @@ public class Game implements java.io.Serializable {
   private String title;
 
   /**
+   * Whether the game is Mac compatible according to Steam.
+   */
+  private Game.GamePropStatus mac;
+
+  /**
+   * Whether the game is 64-bit (Catalina) compatible according to Steam.
+   */
+  private Game.GamePropStatus sixtyFour;
+
+  /**
+   * Whether the game is Apple Silicon-compatible according to Steam.
+   */
+  private Game.GamePropStatus silicon;
+
+   /**
    * When the record for this game was created.
    *
    * Note that this is *not* the creation/release date of the game itself.
@@ -41,7 +67,19 @@ public class Game implements java.io.Serializable {
    */
   private Date updated;
 
-  public static Game createFromSteamAppBean(SteamApp app) {
+  /**
+   * When the record was last updated from the Steam API. Note we don't count
+   * the record's creation as an "update" from the API because we don't get
+   * full game details when first creating it.
+   */
+  private Date steamUpdated;
+
+  /**
+   * Create a game from a SteamApp SteamAPIModel bean.
+   * @param app
+   * @return
+   */
+  public static Game createFromSteamAppBean(GetAppListApp app) {
     Game game = new Game();
     game.setSteamId(app.getAppid());
     game.setTitle(app.getName());
@@ -68,12 +106,40 @@ public class Game implements java.io.Serializable {
     this.title = title;
   }
 
+  public GamePropStatus getMac() {
+    return mac;
+  }
+
+  public void setMac(GamePropStatus mac) {
+    this.mac = mac;
+  }
+
+  public GamePropStatus getSixtyFour() {
+    return sixtyFour;
+  }
+
+  public void setSixtyFour(GamePropStatus sixtyFour) {
+    this.sixtyFour = sixtyFour;
+  }
+
+  public GamePropStatus getSilicon() {
+    return silicon;
+  }
+
+  public void setSilicon(GamePropStatus silicon) {
+    this.silicon = silicon;
+  }
+
   public Date getCreated() {
     return created;
   }
 
   public Date getUpdated() {
     return updated;
+  }
+
+  public Date getSteamUpdated() {
+    return steamUpdated;
   }
 
   /**

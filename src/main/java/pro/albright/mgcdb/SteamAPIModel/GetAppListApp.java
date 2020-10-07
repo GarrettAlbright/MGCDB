@@ -2,7 +2,7 @@ package pro.albright.mgcdb.SteamAPIModel;
 
 import java.io.Serializable;
 
-public class SteamApp implements Serializable {
+public class GetAppListApp implements Serializable {
   private int appid;
   private String name;
   private int last_modified;
