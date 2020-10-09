@@ -30,6 +30,10 @@ public class Tasks {
         }
         newGames(gameLimit);
         break;
+      case "updategames":
+        int updateGameLimit = params.length < 1 ? 10 : Integer.parseInt(params[0]);
+        updateGames(updateGameLimit);
+        break;
       default:
         System.err.printf("Handler for task %s not found.", task);
         System.exit(StatusCodes.NO_TASK_HANDLER);
@@ -65,7 +69,7 @@ public class Tasks {
       "steam_updated TEXT NOT NULL DEFAULT '0000-01-01 00:00:00')";
     String createGamesTriggerQuery = "CREATE TRIGGER update_games " +
       "AFTER UPDATE ON games FOR EACH ROW BEGIN " +
-      "UPDATE games SET last_updated = CURRENT_TIMESTAMP WHERE game_id = OLD.game_id; " +
+      "UPDATE games SET updated = CURRENT_TIMESTAMP WHERE game_id = OLD.game_id; " +
       "END;";
     stmt.addBatch(createGamesQuery);
     stmt.addBatch(createGamesTriggerQuery);
@@ -86,5 +90,18 @@ public class Tasks {
       newGame.save();
     }
     System.out.println("Finished fetching new games.");
+  }
+
+  /**
+   * Update not-recently-updated games from Steam.
+   *
+   * @param limit Max number of games to update.
+   */
+  public static void updateGames(int limit) {
+    Game[] oldGames = Game.getGamesToUpdate(limit);
+    for (Game oldGame : oldGames) {
+      System.out.printf("Updating game %s (%d)%n", oldGame.getTitle(), oldGame.getSteamId());
+      oldGame.updateFromSteam();
+    }
   }
 }

@@ -5,6 +5,10 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.io.File;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class DBCXN {
 
@@ -84,6 +88,23 @@ public class DBCXN {
   }
 
   /**
-   * Close the connectiopn
+   * Parse a timestamp.
+   *
+   * Resultset's .getDate() method doesn't work, apparently because SQLite
+   * doesn't have real date/datetime field types.
+   *
+   * @param timestamp The timestamp.
+   * @return A Date object.
    */
+  public static Date parseTimestamp(String timestamp) {
+    DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    Date date = null;
+    try {
+      date = format.parse(timestamp);
+    }
+    catch (ParseException e) {
+      System.err.printf("Error parsing timestamp %s%n", timestamp);
+    }
+    return date;
+  }
 }

@@ -1,11 +1,13 @@
 package pro.albright.mgcdb.Model;
 
+import pro.albright.mgcdb.SteamAPIModel.GetAppDetailsApp;
 import pro.albright.mgcdb.SteamAPIModel.GetAppListApp;
 import pro.albright.mgcdb.Util.DBCXN;
 import pro.albright.mgcdb.Util.StatusCodes;
 import pro.albright.mgcdb.Util.SteamCxn;
 
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.Date;
 
 /**
@@ -18,9 +20,18 @@ public class Game implements java.io.Serializable {
     NO(1),
     YES(2);
 
-    private int value;
+    private final int value;
     GamePropStatus(int i) {
       this.value = i;
+    }
+
+    private static GamePropStatus fromValue(int i) throws Exception {
+      for (GamePropStatus status : GamePropStatus.values()) {
+        if (status.value == i) {
+          return status;
+        }
+      }
+      throw new Exception("Invalid GamePropStatus value.");
     }
   }
   /**
@@ -90,6 +101,10 @@ public class Game implements java.io.Serializable {
     return gameId;
   }
 
+  public void setGameId(int gameId) {
+    this.gameId = gameId;
+  }
+
   public int getSteamId() {
     return steamId;
   }
@@ -134,12 +149,24 @@ public class Game implements java.io.Serializable {
     return created;
   }
 
+  public void setCreated(Date created) {
+    this.created = created;
+  }
+
   public Date getUpdated() {
     return updated;
   }
 
+  public void setUpdated(Date updated) {
+    this.updated = updated;
+  }
+
   public Date getSteamUpdated() {
     return steamUpdated;
+  }
+
+  public void setSteamUpdated(Date steamUpdated) {
+    this.steamUpdated = steamUpdated;
   }
 
   /**
@@ -212,6 +239,17 @@ public class Game implements java.io.Serializable {
    * Save a game in the DB.
    */
   public void save() {
+    save(false);
+  }
+
+  /**
+   * Save this game in the DB.
+   *
+   * @param withSteamUpdate Whether to update the "steam_updated" timestamp.
+   *                        Should be true if this save is happening as the
+   *                        result of an update from the Steam API.
+   */
+  public void save(boolean withSteamUpdate) {
     Connection cxn = DBCXN.getCxn();
     PreparedStatement stmt;
     try {
@@ -220,8 +258,15 @@ public class Game implements java.io.Serializable {
         stmt = cxn.prepareStatement("INSERT INTO games (steam_id, title) VALUES (?, ?)", Statement.RETURN_GENERATED_KEYS);
       }
       else {
-        stmt = cxn.prepareStatement("UPDATE games SET steam_id = ?, title = ? WHERE game_id = ?");
-        stmt.setInt(3, gameId);
+        StringBuilder sb = new StringBuilder("UPDATE games SET steam_id = ?, title = ?, mac = ?");
+        if (withSteamUpdate) {
+          sb.append(", steam_updated = CURRENT_TIMESTAMP");
+        }
+        sb.append(" WHERE game_id = ?");
+
+        stmt = cxn.prepareStatement(sb.toString());
+        stmt.setInt(3, mac.value);
+        stmt.setInt(4, gameId);
       }
       stmt.setInt(1, steamId);
       stmt.setString(2, title);
@@ -240,5 +285,77 @@ public class Game implements java.io.Serializable {
       System.err.println("Error when saving game.");
       System.exit(StatusCodes.GENERAL_SQL_ERROR);
     }
+  }
+
+  /**
+   * Update this game with information from Steam.
+   */
+  public void updateFromSteam() {
+    SteamCxn steam = new SteamCxn();
+    GetAppDetailsApp updatedGame = steam.getUpdatedGameDetails(this);
+    setTitle(updatedGame.getName());
+    Boolean mac = updatedGame.getPlatforms().get("mac");
+    if (mac != null) {
+      if (mac == true) {
+        setMac(Game.GamePropStatus.YES);
+      }
+      else {
+        setMac(Game.GamePropStatus.NO);
+      }
+    }
+    save(true);
+  }
+
+  /**
+   * Get games in the DB which have gone the longest without a Steam update.
+   *
+   * @param limit The maximum number of games to load.
+   * @return An array of Games.
+   */
+  public static Game[] getGamesToUpdate(int limit) {
+    Connection cxn = DBCXN.getCxn();
+    Game[] games = {};
+    try {
+      // Don't update games less than one day old
+      PreparedStatement stmt = cxn.prepareStatement("SELECT * FROM games WHERE steam_updated < datetime('now', '-1 day') ORDER BY steam_updated ASC LIMIT ?");
+      stmt.setInt(1, limit);
+      ResultSet rs = stmt.executeQuery();
+      games = Game.createFromResultSet(rs);
+    }
+    catch (SQLException e) {
+      System.err.println("Error loading games to update from DB.");
+    }
+    return games;
+  }
+
+  /**
+   * Create a game from a ResultSet from a query of the game table in the DB.
+   *
+   * @param rs A ResultSet.
+   * @return A Game.
+   */
+  public static Game[] createFromResultSet(ResultSet rs) {
+    ArrayList<Game> games = new ArrayList<>();
+    try {
+      while (rs.next()) {
+        Game game = new Game();
+        game.setGameId(rs.getInt("game_id"));
+        game.setSteamId(rs.getInt("steam_id"));
+        game.setTitle(rs.getString("title"));
+        GamePropStatus mac = GamePropStatus.fromValue(rs.getInt("mac"));
+        game.setMac(GamePropStatus.fromValue(rs.getInt("mac")));
+        game.setSixtyFour(GamePropStatus.fromValue(rs.getInt("sixtyfour")));
+        game.setSilicon(GamePropStatus.fromValue(rs.getInt("silicon")));
+        game.setCreated(DBCXN.parseTimestamp(rs.getString("created")));
+        game.setUpdated(DBCXN.parseTimestamp(rs.getString("updated")));
+        game.setSteamUpdated(DBCXN.parseTimestamp(rs.getString("steam_updated")));
+        games.add(game);
+      }
+    }
+    catch (Exception e) {
+      System.err.println("Error trying to load game from DB row");
+      System.exit(StatusCodes.GENERAL_SQL_ERROR);
+    }
+    return games.toArray(new Game[games.size()]);
   }
 }
