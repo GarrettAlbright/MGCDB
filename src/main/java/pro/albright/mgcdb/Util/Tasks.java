@@ -1,7 +1,6 @@
 package pro.albright.mgcdb.Util;
 
 import pro.albright.mgcdb.Model.Game;
-import pro.albright.mgcdb.Util.StatusCodes;
 
 import java.sql.Connection;
 import java.sql.SQLException;

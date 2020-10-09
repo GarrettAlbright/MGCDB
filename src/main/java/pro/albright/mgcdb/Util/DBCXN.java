@@ -34,7 +34,6 @@ public class DBCXN {
    * Return the connection.
    *
    * @return The database connection.
-   * @throws SQLException If a SQL-related error occurred.
    */
   public static Connection getCxn() {
     try {

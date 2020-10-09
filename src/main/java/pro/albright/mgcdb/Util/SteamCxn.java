@@ -18,13 +18,14 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Class to manage making requests and handling responses with the Steam API.
  */
 public class SteamCxn {
 
-  private String steamKey;
+  private final String steamKey;
 
   public SteamCxn() {
     steamKey = Config.get("steam_key");
@@ -39,7 +40,7 @@ public class SteamCxn {
    * https://steamapi.xpaw.me/#IStoreService/GetAppList
    */
   public Game[] getNewGames(int lastAppId, int limit) {
-    ArrayList<Game> games = new ArrayList<Game>();
+    ArrayList<Game> games = new ArrayList<>();
     HashMap<String, String> params = new HashMap<>();
     params.put("last_appid", String.valueOf(lastAppId));
     params.put("max_results", String.valueOf(limit));
@@ -54,7 +55,7 @@ public class SteamCxn {
         games.add(game);
       }
     }
-    return games.toArray(new Game[games.size()]);
+    return games.toArray(new Game[0]);
   }
 
   /**
@@ -73,17 +74,17 @@ public class SteamCxn {
 
     String json = fetchRawJson(uri);
 
-    GetAppDetailsApp app = null;
+    Map<String, GetAppDetailsResponse> gadrMap = null;
 
     try {
-      Map<String, GetAppDetailsResponse> gadr = JSON.std.mapOfFrom(GetAppDetailsResponse.class, json);
-      app = gadr.values().stream().findFirst().get().getData();
+      gadrMap = JSON.std.mapOfFrom(GetAppDetailsResponse.class, json);
     }
     catch (IOException e) {
       System.err.printf("Error getting Steam API update details for %s (%s).%n", game.getTitle(), game.getSteamId());
       System.exit(StatusCodes.GENERAL_OUTGOING_NETWORK_ERROR);
     }
-    return app;
+    Optional<GetAppDetailsResponse> gadrOpt = gadrMap.values().stream().findFirst();
+    return gadrOpt.map(GetAppDetailsResponse::getData).orElse(null);
   }
 
   /**
@@ -154,7 +155,7 @@ public class SteamCxn {
       json = IOUtils.toString(response.getEntity().getContent());
     }
     catch (Exception e) {
-      System.err.printf("Exception while making Steam request: " + e.getMessage());
+      System.err.println("Exception while making Steam request: " + e.getMessage());
       System.exit(StatusCodes.GENERAL_OUTGOING_NETWORK_ERROR);
     }
     if (statusCode < 200 || statusCode >= 300) {

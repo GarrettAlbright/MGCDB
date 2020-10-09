@@ -47,7 +47,7 @@ public class Game implements java.io.Serializable {
   /**
    * The game title.
    *
-   * @TODO Support titles in multiple languages?
+   * TODO Support titles in multiple languages?
    */
   private String title;
 
@@ -84,18 +84,6 @@ public class Game implements java.io.Serializable {
    * full game details when first creating it.
    */
   private Date steamUpdated;
-
-  /**
-   * Create a game from a SteamApp SteamAPIModel bean.
-   * @param app
-   * @return
-   */
-  public static Game createFromSteamAppBean(GetAppListApp app) {
-    Game game = new Game();
-    game.setSteamId(app.getAppid());
-    game.setTitle(app.getName());
-    return game;
-  }
 
   public int getGameId() {
     return gameId;
@@ -170,6 +158,19 @@ public class Game implements java.io.Serializable {
   }
 
   /**
+   * Create a game from a SteamApp SteamAPIModel bean.
+   * @param app A GetAppListApp bean instance.
+   * @return A Game instance.
+   */
+  public static Game createFromSteamAppBean(GetAppListApp app) {
+    Game game = new Game();
+    game.setSteamId(app.getAppid());
+    game.setTitle(app.getName());
+    return game;
+  }
+
+
+  /**
    * Get the Steam ID of the most recently-created game in the database.
    *
    * This is useful for checking for new games on Steam we don't know about,
@@ -203,13 +204,12 @@ public class Game implements java.io.Serializable {
    * Get new games from the Steam DB.
    *
    * @param limit Max number of new games to fetch.
-   * @returnb Array of Games.
+   * @return Array of Games.
    */
   public static Game[] getNewGamesFromSteam(int limit) {
     SteamCxn steamCxn = new SteamCxn();
     int lastAppId = Game.getNewestGameSteamId();
-    Game[] newGames = steamCxn.getNewGames(lastAppId, limit);
-    return newGames;
+    return steamCxn.getNewGames(lastAppId, limit);
  }
 
   /**
@@ -296,7 +296,7 @@ public class Game implements java.io.Serializable {
     setTitle(updatedGame.getName());
     Boolean mac = updatedGame.getPlatforms().get("mac");
     if (mac != null) {
-      if (mac == true) {
+      if (mac) {
         setMac(Game.GamePropStatus.YES);
       }
       else {
@@ -342,7 +342,6 @@ public class Game implements java.io.Serializable {
         game.setGameId(rs.getInt("game_id"));
         game.setSteamId(rs.getInt("steam_id"));
         game.setTitle(rs.getString("title"));
-        GamePropStatus mac = GamePropStatus.fromValue(rs.getInt("mac"));
         game.setMac(GamePropStatus.fromValue(rs.getInt("mac")));
         game.setSixtyFour(GamePropStatus.fromValue(rs.getInt("sixtyfour")));
         game.setSilicon(GamePropStatus.fromValue(rs.getInt("silicon")));
@@ -356,6 +355,6 @@ public class Game implements java.io.Serializable {
       System.err.println("Error trying to load game from DB row");
       System.exit(StatusCodes.GENERAL_SQL_ERROR);
     }
-    return games.toArray(new Game[games.size()]);
+    return games.toArray(new Game[0]);
   }
 }
