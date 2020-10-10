@@ -1,0 +1,16 @@
+<!doctype html>
+<html>
+<body>
+<table>
+	<tr>
+		<th>Game Title</th>
+		<th>Mac?</th>
+	</tr>
+	#foreach($game in $games)
+		<tr>
+			<td>$game.title</td>
+			<td>#if ($game.mac == "NO") No #elseif ($game.mac == "YES") Yes #else ? #end</td>
+		</tr>
+	#end
+</body>
+</html>

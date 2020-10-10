@@ -357,4 +357,23 @@ public class Game implements java.io.Serializable {
     }
     return games.toArray(new Game[0]);
   }
+
+  public static Game[] getAllAlpha(int page) {
+    int perPage = 20;
+    Connection cxn = DBCXN.getCxn();
+    Game[] games = {};
+    int offset = page * perPage;
+    try {
+      PreparedStatement stmt = cxn.prepareStatement("SELECT * FROM games ORDER BY title ASC LIMIT ? OFFSET ?");
+      stmt.setInt(1, perPage);
+      stmt.setInt(2, offset);
+      ResultSet rs = stmt.executeQuery();
+      games = Game.createFromResultSet(rs);
+    }
+    catch (SQLException throwables) {
+      System.err.println("Error loading games to update from DB.");
+    }
+    return games;
+  }
+
 }
