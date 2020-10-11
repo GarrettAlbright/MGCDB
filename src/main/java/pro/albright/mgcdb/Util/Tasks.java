@@ -100,7 +100,9 @@ public class Tasks {
     Game[] oldGames = Game.getGamesToUpdate(limit);
     for (Game oldGame : oldGames) {
       System.out.printf("Updating game %s (%d)%n", oldGame.getTitle(), oldGame.getSteamId());
-      oldGame.updateFromSteam();
+      if (!oldGame.updateFromSteam()) {
+        System.out.printf("/!\\ Game %s (%d) did not successfully update (API call failed?)%n", oldGame.getTitle(), oldGame.getSteamId());
+      }
     }
   }
 }

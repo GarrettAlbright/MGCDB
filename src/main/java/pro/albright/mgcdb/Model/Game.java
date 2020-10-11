@@ -289,10 +289,15 @@ public class Game implements java.io.Serializable {
 
   /**
    * Update this game with information from Steam.
+   *
+   * @return True if the game was able to be successfully updated.
    */
-  public void updateFromSteam() {
+  public boolean updateFromSteam() {
     SteamCxn steam = new SteamCxn();
     GetAppDetailsApp updatedGame = steam.getUpdatedGameDetails(this);
+    if (updatedGame == null) {
+      return false;
+    }
     setTitle(updatedGame.getName());
     Boolean mac = updatedGame.getPlatforms().get("mac");
     if (mac != null) {
@@ -304,6 +309,7 @@ public class Game implements java.io.Serializable {
       }
     }
     save(true);
+    return true;
   }
 
   /**
