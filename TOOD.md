@@ -1,0 +1,7 @@
+- [x] Update README - tasks, NGINX config
+- [ ] Update code to match saner defaults in README
+- [ ] Clean up/refactor templating (back end parts)
+- [ ] Allow specifying custom port for daemon in config
+- [ ] Catalina status - screen scraping
+- [ ] User accounts
+- [ ] Votes
