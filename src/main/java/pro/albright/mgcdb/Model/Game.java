@@ -296,8 +296,13 @@ public class Game implements java.io.Serializable {
     SteamCxn steam = new SteamCxn();
     GetAppDetailsApp updatedGame = steam.getUpdatedGameDetails(this);
     if (updatedGame == null) {
+      // Getting updated info for this game failed, but we're still going to
+      // update this game's "steam_updated" value so we're not constantly
+      // trying to update this game.
+      save(true);
       return false;
     }
+
     setTitle(updatedGame.getName());
     Boolean mac = updatedGame.getPlatforms().get("mac");
     if (mac != null) {
