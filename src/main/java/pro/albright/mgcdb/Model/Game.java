@@ -15,6 +15,12 @@ import java.util.Date;
  */
 public class Game implements java.io.Serializable {
 
+  /**
+   * An enum for storing a "three-state boolean" for states of some game status
+   * fields - a "yes" value, a "no" value, and a value indicating that we're
+   * not sure of the value yet. In particular, this "unchecked" state means we
+   * haven't got an answer from the Steam API for its value yet.
+   */
   enum GamePropStatus {
     UNCHECKED(0),
     NO(1),
@@ -34,6 +40,7 @@ public class Game implements java.io.Serializable {
       throw new Exception("Invalid GamePropStatus value.");
     }
   }
+
   /**
    * The MGCDB game ID.
    */
@@ -168,7 +175,6 @@ public class Game implements java.io.Serializable {
     game.setTitle(app.getName());
     return game;
   }
-
 
   /**
    * Get the Steam ID of the most recently-created game in the database.
@@ -369,6 +375,11 @@ public class Game implements java.io.Serializable {
     return games.toArray(new Game[0]);
   }
 
+  /**
+   * Get 20 games in alphabetical order, unfiltered.
+   * @param page The "page" of games to get.
+   * @return An array of Games.
+   */
   public static Game[] getAllAlpha(int page) {
     int perPage = 20;
     Connection cxn = DBCXN.getCxn();
@@ -386,5 +397,4 @@ public class Game implements java.io.Serializable {
     }
     return games;
   }
-
 }
