@@ -22,7 +22,7 @@ public class Tasks {
         initDb();
         break;
       case "newgames":
-        int gameLimit = params.length < 1 ? 5 : Integer.parseInt(params[0]);
+        int gameLimit = params.length < 1 ? 100 : Integer.parseInt(params[0]);
         if (gameLimit > 50000) {
           System.err.println("Requested game count exceeds limits of Steam API (and human decency)");
           System.exit(StatusCodes.BAD_TASK_PARAM);
@@ -30,7 +30,11 @@ public class Tasks {
         newGames(gameLimit);
         break;
       case "updategames":
-        int updateGameLimit = params.length < 1 ? 10 : Integer.parseInt(params[0]);
+        int updateGameLimit = params.length < 1 ? 100 : Integer.parseInt(params[0]);
+        if (updateGameLimit > 200) {
+          System.err.println("Steam will respond with errors if we try to update more than 200 games in a five-minute period, so refusing to attempt to do so.");
+          System.exit(StatusCodes.BAD_TASK_PARAM);
+        }
         updateGames(updateGameLimit);
         break;
       default:
