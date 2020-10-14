@@ -21,7 +21,7 @@ public class Game implements java.io.Serializable {
    * not sure of the value yet. In particular, this "unchecked" state means we
    * haven't got an answer from the Steam API for its value yet.
    */
-  enum GamePropStatus {
+  public enum GamePropStatus {
     UNCHECKED(0),
     NO(1),
     YES(2);
@@ -264,7 +264,7 @@ public class Game implements java.io.Serializable {
         stmt = cxn.prepareStatement("INSERT INTO games (steam_id, title) VALUES (?, ?)", Statement.RETURN_GENERATED_KEYS);
       }
       else {
-        StringBuilder sb = new StringBuilder("UPDATE games SET steam_id = ?, title = ?, mac = ?");
+        StringBuilder sb = new StringBuilder("UPDATE games SET steam_id = ?, title = ?, mac = ?, sixtyfour = ?, silicon = ?");
         if (withSteamUpdate) {
           sb.append(", steam_updated = CURRENT_TIMESTAMP");
         }
@@ -272,7 +272,9 @@ public class Game implements java.io.Serializable {
 
         stmt = cxn.prepareStatement(sb.toString());
         stmt.setInt(3, mac.value);
-        stmt.setInt(4, gameId);
+        stmt.setInt(4, sixtyFour.value);
+        stmt.setInt(5, silicon.value);
+        stmt.setInt(6, gameId);
       }
       stmt.setInt(1, steamId);
       stmt.setString(2, title);
@@ -313,10 +315,12 @@ public class Game implements java.io.Serializable {
     Boolean mac = updatedGame.getPlatforms().get("mac");
     if (mac != null) {
       if (mac) {
-        setMac(Game.GamePropStatus.YES);
+        setMac(GamePropStatus.YES);
+        setSixtyFour(steam.getCatalinaStatus(this));
       }
       else {
-        setMac(Game.GamePropStatus.NO);
+        setMac(GamePropStatus.NO);
+        setSixtyFour(GamePropStatus.UNCHECKED);
       }
     }
     save(true);

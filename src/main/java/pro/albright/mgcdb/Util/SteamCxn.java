@@ -26,6 +26,8 @@ import java.util.Optional;
 public class SteamCxn {
 
   private final String steamKey;
+  // Identify as a Mac so that Steam tells us if a game is Catalina-compatible
+  private final String userAgentString = "MGCDB/0.1 (Macintosh; +https://github.com/GarrettAlbright/MGCDB)";
 
   public SteamCxn() {
     steamKey = Config.get("steam_key");
@@ -72,7 +74,7 @@ public class SteamCxn {
     String initialString = "https://store.steampowered.com/api/appdetails?appids=" + game.getSteamId();
     URI uri = URI.create(initialString);
 
-    String json = fetchRawJson(uri);
+    String json = fetchRawResponseBody(uri);
 
     Map<String, GetAppDetailsResponse> gadrMap = null;
 
@@ -85,6 +87,21 @@ public class SteamCxn {
     }
     Optional<GetAppDetailsResponse> gadrOpt = gadrMap.values().stream().findFirst();
     return gadrOpt.map(GetAppDetailsResponse::getData).orElse(null);
+  }
+
+  /**
+   * Get the Catalina status for a game.
+   *
+   * Unfortunately this is not exposed via the API, so we resort to screen
+   * scraping. Barf.
+   */
+  public Game.GamePropStatus getCatalinaStatus(Game game) {
+    URI uri = URI.create("https://store.steampowered.com/app/245170/");
+    String response = fetchRawResponseBody(uri);
+    // We'll look for the ID of Steam's KB article about Catalina. It's
+    // likely that that link will be there in the future even if there are
+    // HTML changes in the future.
+    return response.contains("1055-ISJM-8568") ? Game.GamePropStatus.NO : Game.GamePropStatus.YES;
   }
 
   /**
@@ -121,7 +138,7 @@ public class SteamCxn {
    * @return A bean of the given type
    */
   private <T> T makeRequestAndReturnBean(URI uri, Class<T> beanClass) {
-    String json = fetchRawJson(uri);
+    String json = fetchRawResponseBody(uri);
 
     T responseBean = null;
     try {
@@ -135,20 +152,22 @@ public class SteamCxn {
   }
 
   /**
-   * Fetch raw JSON (as a String).
-   * @param uri The URI from which to get the JSON.
+   * Fetch raw response body as a string.
+   * @param uri The URI to make the request to.
    * @return The JSON as a String.
    */
-  private String fetchRawJson(URI uri) {
+  private String fetchRawResponseBody(URI uri) {
     int statusCode = -1;
     String json = "";
     try {
-      // Ignore cookies
+      // Ignore cookies. This causes problems.
       RequestConfig config = RequestConfig.custom()
         .setCookieSpec(CookieSpecs.IGNORE_COOKIES)
         .build();
       HttpClient client = HttpClients.custom().setDefaultRequestConfig(config).build();
       HttpGet get = new HttpGet(uri);
+      get.setHeader("Accept-Language", "en-US");
+      get.setHeader("User-Agent", userAgentString);
 
       HttpResponse response = client.execute(get);
       statusCode = response.getStatusLine().getStatusCode();
