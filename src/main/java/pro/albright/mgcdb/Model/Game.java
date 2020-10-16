@@ -3,6 +3,7 @@ package pro.albright.mgcdb.Model;
 import pro.albright.mgcdb.SteamAPIModel.GetAppDetailsApp;
 import pro.albright.mgcdb.SteamAPIModel.GetAppListApp;
 import pro.albright.mgcdb.Util.DBCXN;
+import pro.albright.mgcdb.Util.PagedQueryResult;
 import pro.albright.mgcdb.Util.StatusCodes;
 import pro.albright.mgcdb.Util.SteamCxn;
 
@@ -14,6 +15,11 @@ import java.util.Date;
  * Bean class to encapsulate a game.
  */
 public class Game implements java.io.Serializable {
+
+  /**
+   * The number of games to show per page on listings.
+   */
+  public static final int perPage = 25;
 
   /**
    * An enum for storing a "three-state boolean" for states of some game status
@@ -401,4 +407,33 @@ public class Game implements java.io.Serializable {
     }
     return games;
   }
+
+  /**
+   *
+   */
+  public static PagedQueryResult<Game> getRecentlyUpdated(int page) {
+    Connection cxn = DBCXN.getCxn();
+    Game[] games = {};
+    int totalCount = 0;
+    int offset = page * perPage;
+    try {
+      PreparedStatement stmt = cxn.prepareStatement("SELECT * FROM games WHERE mac <> ? ORDER BY updated DESC LIMIT ? OFFSET ?");
+      stmt.setInt(1, GamePropStatus.UNCHECKED.value);
+      stmt.setInt(2, perPage);
+      stmt.setInt(3, offset);
+      ResultSet rs = stmt.executeQuery();
+      games = Game.createFromResultSet(rs);
+      stmt = cxn.prepareStatement("SELECT COUNT(*) FROM games WHERE mac <> ?");
+      stmt.setInt(1, GamePropStatus.UNCHECKED.value);
+      rs = stmt.executeQuery();
+      if (rs.next()) {
+        totalCount = rs.getInt(1);
+      }
+    }
+    catch (SQLException throwables) {
+      throwables.printStackTrace();
+    }
+    return new PagedQueryResult<>(games, totalCount, perPage, page);
+  }
+
 }

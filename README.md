@@ -90,3 +90,5 @@ All game information, including titles, descriptions, and images, should be cons
 
 MGCDB is licensed under the BSD 2-clause license. Various libraries used by MGCDB (see 
 pom.xml) will have their own license terms but all are FOSS-licensed.
+
+Special thanks to the members of the ##java channel on Freenode for help throughout my Java learning experience.
