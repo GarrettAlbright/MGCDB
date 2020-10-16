@@ -3,18 +3,20 @@
 	<title>Mac Game Compatibility Database - Games by Update - Page $currentPage</title>
 <body>
 	<h1>MGCDB</h1>
-	<h2>All Games by Update</h2>
+	<h2>All Games by Release</h2>
 <table>
 	<tr>
 		<th>Game Title</th>
+		<th>Release</th>
 		<th>Mac?</th>
 		<th>Catalina?</th>
 	</tr>
 	#foreach($game in $games)
 		<tr>
-			<td>$game.title</td>
-			<td>#if ($game.mac == "NO") No #elseif ($game.mac == "YES") Yes #else ? #end</td>
-			<td>#if ($game.sixtyfour == "NO") No #elseif ($game.sixtyfour == "YES") Yes #else ? #end</td>
+			<td>$game.Title</td>
+			<td>$game.SteamReleaseDate</td>
+			<td>#if ($game.Mac == "NO") No #elseif ($game.Mac == "YES") Yes #else ? #end</td>
+			<td>#if ($game.SixtyFour == "NO") No #elseif ($game.SixtyFour == "YES") Yes #else ? #end</td>
 		</tr>
 	#end
 </table>

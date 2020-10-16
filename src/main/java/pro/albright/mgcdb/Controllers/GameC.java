@@ -18,7 +18,7 @@ import java.util.Properties;
 
 public class GameC {
 
-  public static Object gamesByUpdate(Request req, Response res)  {
+  public static Object gamesByRelease(Request req, Response res)  {
     Properties p = new Properties();
     Path templatePath = Paths.get("templates");
     p.put("file.resource.loader.path", templatePath.toAbsolutePath().toString());
@@ -27,7 +27,7 @@ public class GameC {
     VelocityContext context = new VelocityContext();
     String pageStr = req.params(":page");
     int page = pageStr == null ? 0 : Integer.parseInt(pageStr) - 1;
-    PagedQueryResult<Game> gameResult = Game.getRecentlyUpdated(page);
+    PagedQueryResult<Game> gameResult = Game.getByReleaseDate(page);
     context.put("games", gameResult.getResults());
     context.put("totalGames", gameResult.getTotalResults());
     context.put("totalPages", gameResult.getTotalPages());

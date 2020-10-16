@@ -436,13 +436,13 @@ public class Game implements java.io.Serializable {
   /**
    *
    */
-  public static PagedQueryResult<Game> getRecentlyUpdated(int page) {
+  public static PagedQueryResult<Game> getByReleaseDate(int page) {
     Connection cxn = DBCXN.getCxn();
     Game[] games = {};
     int totalCount = 0;
     int offset = page * perPage;
     try {
-      PreparedStatement stmt = cxn.prepareStatement("SELECT * FROM games WHERE mac <> ? ORDER BY updated DESC LIMIT ? OFFSET ?");
+      PreparedStatement stmt = cxn.prepareStatement("SELECT * FROM games WHERE mac <> ? ORDER BY steam_release DESC LIMIT ? OFFSET ?");
       stmt.setInt(1, GamePropStatus.UNCHECKED.value);
       stmt.setInt(2, perPage);
       stmt.setInt(3, offset);
