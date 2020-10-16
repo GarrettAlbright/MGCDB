@@ -69,6 +69,7 @@ public class Tasks {
       "silicon INTEGER NOT NULL DEFAULT 0, " +
       "created TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, " +
       "updated TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, " +
+      "steam_release TEXT NOT NULL DEFAULT '0000-01-01', " +
       "steam_updated TEXT NOT NULL DEFAULT '0000-01-01 00:00:00')";
     String createGamesTriggerQuery = "CREATE TRIGGER update_games " +
       "AFTER UPDATE ON games FOR EACH ROW BEGIN " +

@@ -8,6 +8,8 @@ import pro.albright.mgcdb.Util.StatusCodes;
 import pro.albright.mgcdb.Util.SteamCxn;
 
 import java.sql.*;
+import java.text.ParseException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 
@@ -98,6 +100,11 @@ public class Game implements java.io.Serializable {
    */
   private Date steamUpdated;
 
+  /**
+   * When the game was released on Steam.
+   */
+  private LocalDate steamReleaseDate;
+
   public int getGameId() {
     return gameId;
   }
@@ -168,6 +175,14 @@ public class Game implements java.io.Serializable {
 
   public void setSteamUpdated(Date steamUpdated) {
     this.steamUpdated = steamUpdated;
+  }
+
+  public LocalDate getSteamReleaseDate() {
+    return steamReleaseDate;
+  }
+
+  public void setSteamReleaseDate(LocalDate steamReleaseDate) {
+    this.steamReleaseDate = steamReleaseDate;
   }
 
   /**
@@ -270,7 +285,7 @@ public class Game implements java.io.Serializable {
         stmt = cxn.prepareStatement("INSERT INTO games (steam_id, title) VALUES (?, ?)", Statement.RETURN_GENERATED_KEYS);
       }
       else {
-        StringBuilder sb = new StringBuilder("UPDATE games SET steam_id = ?, title = ?, mac = ?, sixtyfour = ?, silicon = ?");
+        StringBuilder sb = new StringBuilder("UPDATE games SET steam_id = ?, title = ?, mac = ?, sixtyfour = ?, silicon = ?, steam_release = ?");
         if (withSteamUpdate) {
           sb.append(", steam_updated = CURRENT_TIMESTAMP");
         }
@@ -280,7 +295,9 @@ public class Game implements java.io.Serializable {
         stmt.setInt(3, mac.value);
         stmt.setInt(4, sixtyFour.value);
         stmt.setInt(5, silicon.value);
-        stmt.setInt(6, gameId);
+        stmt.setString(6, steamReleaseDate.toString());
+        stmt.setInt(7, gameId);
+
       }
       stmt.setInt(1, steamId);
       stmt.setString(2, title);
@@ -318,6 +335,13 @@ public class Game implements java.io.Serializable {
     }
 
     setTitle(updatedGame.getName());
+    try {
+      setSteamReleaseDate(updatedGame.getRelease_date().getDateAsLocalDate());
+    }
+    catch (ParseException e) {
+      System.err.print("Error parsing date while updating game from Steam.");
+      System.exit(StatusCodes.GENERAL_OUTGOING_NETWORK_ERROR);
+    }
     Boolean mac = updatedGame.getPlatforms().get("mac");
     if (mac != null) {
       if (mac) {
@@ -375,6 +399,7 @@ public class Game implements java.io.Serializable {
         game.setCreated(DBCXN.parseTimestamp(rs.getString("created")));
         game.setUpdated(DBCXN.parseTimestamp(rs.getString("updated")));
         game.setSteamUpdated(DBCXN.parseTimestamp(rs.getString("steam_updated")));
+        game.setSteamReleaseDate(LocalDate.parse(rs.getString("steam_release")));
         games.add(game);
       }
     }
