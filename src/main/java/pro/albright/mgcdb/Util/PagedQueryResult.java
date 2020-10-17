@@ -9,13 +9,19 @@ public class PagedQueryResult<T> {
   private T[] results;
 
   public PagedQueryResult(T[] results, int totalResults, int perPage, int currentPageZeroBased) {
+//    this(results, totalResults);
+    this.results = results;
     this.totalResults = totalResults;
     this.perPage = perPage;
     this.currentPageZeroBased = currentPageZeroBased;
-    this.results = results;
 
     totalPages = (int) Math.ceil(totalResults / perPage);
   }
+
+//  public PagedQueryResult(T[] results, int totalResults) {
+//    this.results = results;
+//    this.totalResults = totalResults;
+//  }
 
   public int getTotalResults() {
     return totalResults;
@@ -25,12 +31,20 @@ public class PagedQueryResult<T> {
     return perPage;
   }
 
+  public void setPerPage(int perPage) {
+    this.perPage = perPage;
+  }
+
   public int getTotalPages() {
     return totalPages;
   }
 
   public int getCurrentPageZeroBased() {
     return currentPageZeroBased;
+  }
+
+  public void setCurrentPageZeroBased(int currentPageZeroBased) {
+    this.currentPageZeroBased = currentPageZeroBased;
   }
 
   public T[] getResults() {

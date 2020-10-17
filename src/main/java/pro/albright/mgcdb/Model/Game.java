@@ -7,11 +7,14 @@ import pro.albright.mgcdb.Util.PagedQueryResult;
 import pro.albright.mgcdb.Util.StatusCodes;
 import pro.albright.mgcdb.Util.SteamCxn;
 
+import javax.xml.transform.Result;
 import java.sql.*;
 import java.text.ParseException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Bean class to encapsulate a game.
@@ -209,22 +212,7 @@ public class Game implements java.io.Serializable {
    * there are no games in the DB currently.
    */
   public static int getNewestGameSteamId() {
-    Connection cxn = DBCXN.getCxn();
-    int maxSteamId = -1;
-    try {
-      Statement stmt = cxn.createStatement();
-      ResultSet rs = stmt.executeQuery("SELECT MAX(steam_id) AS max FROM games");
-      if (rs.next()) {
-        // Note that we have to use a named column here - rs.getInt(0) crashes
-        // if the column value is null. With a named column, we get 0 instead,
-        // which is fine for this case.
-        maxSteamId = rs.getInt("max");
-      }
-    }
-    catch (SQLException e) {
-      System.exit(StatusCodes.GENERAL_SQL_ERROR);
-    }
-    return maxSteamId;
+    return DBCXN.getSingleIntResult("SELECT MAX(steam_id) AS max FROM games", null);
   }
 
   /**
@@ -246,20 +234,10 @@ public class Game implements java.io.Serializable {
    * @return True if the game exists; false otherwise.
    */
   public static boolean existsBySteamId(int steamId) {
-    Connection cxn = DBCXN.getCxn();
-    boolean gameExists = false;
-    try {
-      PreparedStatement stmt = cxn.prepareStatement("SELECT COUNT(*) AS count FROM games WHERE steam_id = ?");
-      stmt.setInt(1, steamId);
-      ResultSet result = stmt.executeQuery();
-      result.next();
-      gameExists = result.getInt("count") == 1;
-    }
-    catch (SQLException e) {
-      System.err.println("SQL error when querying for existence of game");
-      System.exit(StatusCodes.GENERAL_SQL_ERROR);
-    }
-    return gameExists;
+    String query = "SELECT COUNT(*) AS count FROM games WHERE steam_id = ?";
+    Map<Integer, Object> parameters = new HashMap<>();
+    parameters.put(1, steamId);
+    return DBCXN.getSingleIntResult(query, parameters) > 0;
   }
 
   /**
@@ -277,44 +255,34 @@ public class Game implements java.io.Serializable {
    *                        result of an update from the Steam API.
    */
   public void save(boolean withSteamUpdate) {
-    Connection cxn = DBCXN.getCxn();
-    PreparedStatement stmt;
-    try {
-      if (gameId == 0) {
-        // This hasn't been inserted yet
-        stmt = cxn.prepareStatement("INSERT INTO games (steam_id, title) VALUES (?, ?)", Statement.RETURN_GENERATED_KEYS);
-      }
-      else {
-        StringBuilder sb = new StringBuilder("UPDATE games SET steam_id = ?, title = ?, mac = ?, sixtyfour = ?, silicon = ?, steam_release = ?");
-        if (withSteamUpdate) {
-          sb.append(", steam_updated = CURRENT_TIMESTAMP");
-        }
-        sb.append(" WHERE game_id = ?");
+    String query;
+    Map<Integer, Object> parameters = new HashMap<>();
 
-        stmt = cxn.prepareStatement(sb.toString());
-        stmt.setInt(3, mac.value);
-        stmt.setInt(4, sixtyFour.value);
-        stmt.setInt(5, silicon.value);
-        stmt.setString(6, steamReleaseDate.toString());
-        stmt.setInt(7, gameId);
-
-      }
-      stmt.setInt(1, steamId);
-      stmt.setString(2, title);
-      stmt.executeUpdate();
-      if (gameId == 0) {
-        // Set the game ID to the one just created
-        ResultSet rs = stmt.getGeneratedKeys();
-        if (rs.next()) {
-          gameId = rs.getInt(1);
-        }
-      }
-      stmt.close();
-      cxn.commit();
+    if (gameId == 0) {
+      query = "INSERT INTO games (steam_id, title) VALUES (?, ?)";
     }
-    catch (SQLException e) {
-      System.err.println("Error when saving game.");
-      System.exit(StatusCodes.GENERAL_SQL_ERROR);
+    else {
+      StringBuilder sb = new StringBuilder("UPDATE games SET steam_id = ?, title = ?, mac = ?, sixtyfour = ?, silicon = ?, steam_release = ?");
+      if (withSteamUpdate) {
+        sb.append(", steam_updated = CURRENT_TIMESTAMP");
+      }
+      sb.append(" WHERE game_id = ?");
+      query = sb.toString();
+      parameters.put(3, mac.value);
+      parameters.put(4, sixtyFour.value);
+      parameters.put(5, silicon.value);
+      parameters.put(6, steamReleaseDate.toString());
+      parameters.put(7, gameId);
+    }
+
+    parameters.put(1, steamId);
+    parameters.put(2, title);
+
+    if (gameId == 0) {
+      gameId = DBCXN.doInsertQuery(query, parameters);
+    }
+    else {
+      DBCXN.doUpdateQuery(query, parameters);
     }
   }
 
@@ -364,19 +332,13 @@ public class Game implements java.io.Serializable {
    * @return An array of Games.
    */
   public static Game[] getGamesToUpdate(int limit) {
-    Connection cxn = DBCXN.getCxn();
-    Game[] games = {};
-    try {
-      // Don't update games less than one day old
-      PreparedStatement stmt = cxn.prepareStatement("SELECT * FROM games WHERE steam_updated < datetime('now', '-1 day') ORDER BY steam_updated ASC LIMIT ?");
-      stmt.setInt(1, limit);
-      ResultSet rs = stmt.executeQuery();
-      games = Game.createFromResultSet(rs);
-    }
-    catch (SQLException e) {
-      System.err.println("Error loading games to update from DB.");
-    }
-    return games;
+    String query = "SELECT * FROM games WHERE steam_updated < datetime('now', '-1 day') ORDER BY steam_updated ASC LIMIT ?";
+    Map<Integer, Object> params = new HashMap<>();
+    params.put(1, limit);
+
+    ResultSet rs =  DBCXN.doSelectQuery(query, params);
+
+    return createFromResultSet(rs);
   }
 
   /**
@@ -411,54 +373,25 @@ public class Game implements java.io.Serializable {
   }
 
   /**
-   * Get 20 games in alphabetical order, unfiltered.
-   * @param page The "page" of games to get.
-   * @return An array of Games.
-   */
-  public static Game[] getAllAlpha(int page) {
-    int perPage = 20;
-    Connection cxn = DBCXN.getCxn();
-    Game[] games = {};
-    int offset = page * perPage;
-    try {
-      PreparedStatement stmt = cxn.prepareStatement("SELECT * FROM games ORDER BY title ASC LIMIT ? OFFSET ?");
-      stmt.setInt(1, perPage);
-      stmt.setInt(2, offset);
-      ResultSet rs = stmt.executeQuery();
-      games = Game.createFromResultSet(rs);
-    }
-    catch (SQLException throwables) {
-      System.err.println("Error loading games to update from DB.");
-    }
-    return games;
-  }
-
-  /**
+   * Get games by release date.
    *
+   * @param page The current page of results to fetch (zero-based)
+   * @return A PagedQueryResult<Game> with the results.
    */
   public static PagedQueryResult<Game> getByReleaseDate(int page) {
-    Connection cxn = DBCXN.getCxn();
-    Game[] games = {};
-    int totalCount = 0;
-    int offset = page * perPage;
-    try {
-      PreparedStatement stmt = cxn.prepareStatement("SELECT * FROM games WHERE mac <> ? ORDER BY steam_release DESC LIMIT ? OFFSET ?");
-      stmt.setInt(1, GamePropStatus.UNCHECKED.value);
-      stmt.setInt(2, perPage);
-      stmt.setInt(3, offset);
-      ResultSet rs = stmt.executeQuery();
-      games = Game.createFromResultSet(rs);
-      stmt = cxn.prepareStatement("SELECT COUNT(*) FROM games WHERE mac <> ?");
-      stmt.setInt(1, GamePropStatus.UNCHECKED.value);
-      rs = stmt.executeQuery();
-      if (rs.next()) {
-        totalCount = rs.getInt(1);
-      }
-    }
-    catch (SQLException throwables) {
-      throwables.printStackTrace();
-    }
-    return new PagedQueryResult<>(games, totalCount, perPage, page);
-  }
+    int offset = perPage * page;
+    String selectQuery = "SELECT * FROM games WHERE mac <> ? ORDER BY steam_release DESC LIMIT ? OFFSET ?";
+    String countQuery = "SELECT COUNT(*) FROM games WHERE mac <> ?";
+    Map<Integer, Object> params = new HashMap<>();
+    params.put(1, GamePropStatus.UNCHECKED.value);
+    int count = DBCXN.getSingleIntResult(countQuery, params);
 
+    params.put(2, perPage);
+    params.put(3, offset);
+    ResultSet rs = DBCXN.doSelectQuery(selectQuery, params);
+    Game[] games = createFromResultSet(rs);
+
+
+    return new PagedQueryResult<Game>(games, count, perPage, page);
+  }
 }
