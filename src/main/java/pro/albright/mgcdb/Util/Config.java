@@ -11,10 +11,18 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Class to manage retrieving configuration parameters.
+ */
 public class Config {
   private static TomlParseResult config;
   private static String fileAbsPath;
 
+  /**
+   * Get a configuration value.
+   * @param path The TOML path to the desired value.
+   * @return The desired value as a String (other types not supported yet).
+   */
   public static String get(String path) {
     if (config == null) {
       init();
@@ -23,6 +31,9 @@ public class Config {
     return config.getString(path);
   }
 
+  /**
+   * Initialize by finding a config file and loading settings.
+   */
   private static void init() {
     // Load settings
     List<String> settingsPaths = new ArrayList<>();

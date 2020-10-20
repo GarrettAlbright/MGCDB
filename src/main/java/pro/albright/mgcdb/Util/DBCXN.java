@@ -18,7 +18,11 @@ public class DBCXN {
   private static Connection readOnlyCxn;
 
   /**
-   * Init the connection.
+   * Init the writable connection.
+   *
+   * The writable connection is inefficiently closed after every query, but
+   * this allows for other processes (such as the `sqlite` CLI tool to access
+   * the database without it being locked.
    */
   protected static void init() {
     ensurePath();
@@ -39,6 +43,12 @@ public class DBCXN {
     }
   }
 
+  /**
+   * Init the read-only connection.
+   *
+   * Using this connection for read-only queries avoids the database being
+   * locked.
+   */
   protected static void initReadOnlyCxn() {
     ensurePath();
     try {
@@ -57,7 +67,7 @@ public class DBCXN {
   }
 
   /**
-   * Return the normal connection.
+   * Return the writable connection.
    *
    * @return The database connection.
    */
@@ -74,6 +84,11 @@ public class DBCXN {
     return cxn;
   }
 
+  /**
+   * Return the read-only connection.
+   *
+   * @return The database connection.
+   */
   protected static Connection getReadOnlyCxn() {
     try {
       if (readOnlyCxn == null || !readOnlyCxn.isValid(1)) {
@@ -149,14 +164,34 @@ public class DBCXN {
     return date;
   }
 
+  /**
+   * Perform an insert query and return the ID of the inserted row.
+   *
+   * @param query The query.
+   * @param parameters Parameters. See prepareStatement() for more.
+   * @return The ID of the inserted row.
+   */
   public static int doInsertQuery(String query, Map<Integer, Object> parameters) {
     return doInsertOrUpdateQuery(query, parameters, true);
   }
 
+  /**
+   * Perform an update query.
+   *
+   * @param query The query.
+   * @param parameters Parameters. See prepareStatement() for more.
+   */
   public static void doUpdateQuery(String query, Map<Integer, Object> parameters) {
     doInsertOrUpdateQuery(query, parameters, false);
   }
 
+  /**
+   * Perform a select query and return the resulting ResultSet.
+   *
+   * @param query The query.
+   * @param parameters Parameters. See prepareStatement() for more.
+   * @return The resulting ResultSet.
+   */
   public static ResultSet doSelectQuery(String query, Map<Integer, Object> parameters) {
     Connection roCxn = getReadOnlyCxn();
     PreparedStatement stmt = prepareStatement(query, parameters, roCxn);
@@ -171,6 +206,14 @@ public class DBCXN {
     return rs;
   }
 
+  /**
+   * Perform a select query which is expected to have a result of a single int;
+   * for example, a SELECT COUNT(*)… query.
+   *
+   * @param query The query.
+   * @param parameters Parameters. See prepareStatement() for more.
+   * @return The resulting integer.
+   */
   public static int getSingleIntResult(String query, Map<Integer, Object> parameters) {
     ResultSet rs = doSelectQuery(query, parameters);
     int count = 0;
@@ -186,6 +229,15 @@ public class DBCXN {
     return count;
   }
 
+  /**
+   * Generalized method to do an insert or update query.
+   *
+   * @param query The query.
+   * @param parameters Parameters. See prepareStatement() for more.
+   * @param returnGeneratedKey If true, the ID of the inserted row will be
+   *                           retrieved after the query and returned.
+   * @return The ID of the inserted row if requested; 0 otherwise.
+   */
   protected static int doInsertOrUpdateQuery(String query, Map<Integer, Object> parameters, boolean returnGeneratedKey) {
     Connection cxn = getCxn();
     PreparedStatement stmt = prepareStatement(query, parameters, cxn);
@@ -211,17 +263,16 @@ public class DBCXN {
     return returnId;
   }
 
-//  public static <T extends CreatableFromResultSet> T[] getSelectResults(String query, Map<Integer, Object> parameters, Class<T> type) {
-//    ResultSet rs = doSelectQuery(query, parameters);
-//    return (T[]) T.createFromResultSet(rs);
-//  }
-//
-//  public static <T extends CreatableFromResultSet> PagedQueryResult<T> getPagedQueryResult(String query, Map<Integer, Object> parameters, String countQuery, Class<T> type) {
-//    T[] results = getSelectResults(query, parameters, type);
-//    int count = getSingleIntResult(countQuery, parameters);
-//    return new PagedQueryResult<T>(results, count);
-//  }
-
+  /**
+   * Prepare a query.
+   *
+   * @param query The query.
+   * @param parameters A Map<Integer, Object> of parameters for the query.
+   *                   Currently we expect Object to be either an Integer or a
+   *                   String.
+   * @param cxn The connection to prepare the query against.
+   * @return A PreparedStatement generated from the query and parameters.
+   */
   protected static PreparedStatement prepareStatement(String query, Map<Integer, Object> parameters, Connection cxn) {
     PreparedStatement stmt = null;
     try {

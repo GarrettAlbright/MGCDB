@@ -16,8 +16,17 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Properties;
 
+/**
+ * Controller for game-related routes.
+ */
 public class GameC {
 
+  /**
+   * Show games by release date.
+   * @param req
+   * @param res
+   * @return
+   */
   public static Object gamesByRelease(Request req, Response res)  {
     Properties p = new Properties();
     Path templatePath = Paths.get("templates");
