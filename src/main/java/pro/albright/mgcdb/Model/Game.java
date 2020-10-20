@@ -7,7 +7,6 @@ import pro.albright.mgcdb.Util.PagedQueryResult;
 import pro.albright.mgcdb.Util.StatusCodes;
 import pro.albright.mgcdb.Util.SteamCxn;
 
-import javax.xml.transform.Result;
 import java.sql.*;
 import java.text.ParseException;
 import java.time.LocalDate;
@@ -30,7 +29,9 @@ public class Game implements java.io.Serializable {
    * An enum for storing a "three-state boolean" for states of some game status
    * fields - a "yes" value, a "no" value, and a value indicating that we're
    * not sure of the value yet. In particular, this "unchecked" state means we
-   * haven't got an answer from the Steam API for its value yet.
+   * haven't got an answer from the Steam API for its value yet. This value is
+   * stored in the database; hence the extra steps for defining absolute values
+   * and instantiating from them.
    */
   public enum GamePropStatus {
     UNCHECKED(0),
@@ -50,6 +51,19 @@ public class Game implements java.io.Serializable {
       }
       throw new Exception("Invalid GamePropStatus value.");
     }
+  }
+
+  /**
+   * An enum for stating how to filter a list of games. This is not stored in
+   * the database so we don't care about absolute values.
+   */
+  public enum GameFilterMode {
+    // All games
+    ALL,
+    // Only Mac games
+    MAC,
+    // Only Catalina-compatible (64-bit) Mac games
+    CATALINA
   }
 
   /**
@@ -378,19 +392,37 @@ public class Game implements java.io.Serializable {
    * @param page The current page of results to fetch (zero-based)
    * @return A PagedQueryResult<Game> with the results.
    */
-  public static PagedQueryResult<Game> getByReleaseDate(int page) {
+  public static PagedQueryResult<Game> getByReleaseDate(int page, GameFilterMode filter) {
     int offset = perPage * page;
-    String selectQuery = "SELECT * FROM games WHERE mac <> ? ORDER BY steam_release DESC LIMIT ? OFFSET ?";
-    String countQuery = "SELECT COUNT(*) FROM games WHERE mac <> ?";
     Map<Integer, Object> params = new HashMap<>();
-    params.put(1, GamePropStatus.UNCHECKED.value);
+    StringBuilder paramsSb = new StringBuilder(" FROM games WHERE ");
+
+    if (filter == GameFilterMode.MAC) {
+      // Only Mac games
+      paramsSb.append("mac = ? ");
+      params.put(1, GamePropStatus.YES.value);
+    }
+    else if (filter == GameFilterMode.CATALINA) {
+      // Only Catalina/64-bit games
+      paramsSb.append("sixtyfour = ? ");
+      params.put(1, GamePropStatus.YES.value);
+    }
+    else {
+      // All games
+      paramsSb.append("mac <> ? ");
+      params.put(1, GamePropStatus.UNCHECKED.value);
+    }
+
+    String paramsPart = paramsSb.toString();
+
+    String selectQuery = "SELECT *" + paramsPart + "ORDER BY steam_release DESC LIMIT ? OFFSET ?";
+    String countQuery = "SELECT COUNT(*)" + paramsPart;
     int count = DBCXN.getSingleIntResult(countQuery, params);
 
     params.put(2, perPage);
     params.put(3, offset);
     ResultSet rs = DBCXN.doSelectQuery(selectQuery, params);
     Game[] games = createFromResultSet(rs);
-
 
     return new PagedQueryResult<Game>(games, count, perPage, page);
   }

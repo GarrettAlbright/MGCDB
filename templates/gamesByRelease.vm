@@ -1,4 +1,6 @@
 <h2>All Games by Release</h2>
+
+<nav class="table-fmt">Show: <a href="/games" title="Show all games">All</a> <a href="/games/mac" title="Show only games which are Mac compatible">Mac only</a> <a href="/games/cat" title="Show only games which are Catalina compatible">Catalina</a></nav>
 <table>
 	<tr>
 		<th colspan="2">Game Title</th>

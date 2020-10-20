@@ -17,7 +17,8 @@ public class App {
       System.out.println("Starting server.");
 
       get("/games", GameC::gamesByRelease);
-      get("/games/:page", GameC::gamesByRelease);
+      get("/games/:filter", GameC::gamesByRelease);
+      get("/games/:filter/:page", GameC::gamesByRelease);
     }
     else {
       // Run an administrative task.
