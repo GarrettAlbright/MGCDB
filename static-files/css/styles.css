@@ -1,0 +1,28 @@
+body {
+  background-color: #192109; /* HSLuv(105.4, 74.9, 11.2) */
+  color: #576c2f; /* 105.4, 74.9, 42.8 */
+	font-family: Tahoma, Verdana, Segoe, sans-serif;
+
+}
+
+a:link,
+a:visited {
+  color: #63692f; /* 91.9, 74.9, 42.8 */
+}
+
+a:active {
+	color: #7e863e; /* 91.9, 74.9, 53.8 */
+}
+
+/* "Button:" #1d1f09 - 91.9, 74.9, 11.2 */
+
+table {
+	width: 100%;
+}
+
+@media screen and (min-width: 640px) {
+	body {
+		width: 640px;
+		margin: 0 auto;
+	}
+}

@@ -1,18 +1,16 @@
-<!doctype html>
-<html>
-	<title>Mac Game Compatibility Database - Games by Update - Page $currentPage</title>
-<body>
-	<h1>MGCDB</h1>
-	<h2>All Games by Release</h2>
+<h2>All Games by Release</h2>
 <table>
 	<tr>
-		<th>Game Title</th>
+		<th colspan="2">Game Title</th>
 		<th>Release</th>
 		<th>Mac?</th>
 		<th>Catalina?</th>
 	</tr>
 	#foreach($game in $games)
 		<tr>
+			<td>
+				<img src="https://cdn.cloudflare.steamstatic.com/steam/apps/$game.SteamId/capsule_184x69.jpg" width="92" height="35" alt="Game capsule banner">
+			</td>
 			<td>$game.Title</td>
 			<td>$game.SteamReleaseDate</td>
 			<td>#if ($game.Mac == "NO") No #elseif ($game.Mac == "YES") Yes #else ? #end</td>
@@ -25,5 +23,3 @@
 <li>#if ($page == $currentPage)$page#else<a href="/games/$page">$page</a>#end</li>
 #end
 </ul>
-</body>
-</html>

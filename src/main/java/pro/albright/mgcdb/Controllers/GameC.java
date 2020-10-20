@@ -41,10 +41,11 @@ public class GameC {
     context.put("totalGames", gameResult.getTotalResults());
     context.put("totalPages", gameResult.getTotalPages());
     context.put("currentPage", gameResult.getCurrentPageZeroBased() + 1);
+    context.put("template", "gamesByRelease.vm");
 
     StringWriter sw = new StringWriter();
     try {
-      t = Velocity.getTemplate("gamesByUpdate.vm");
+      t = Velocity.getTemplate("skeleton.vm");
       t.merge(context, sw);
     }
     catch (ResourceNotFoundException e) {
