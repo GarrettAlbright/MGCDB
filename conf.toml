@@ -8,6 +8,6 @@ db_location = "~/mgcdb.sqlite"
 # Get this at https://steamcommunity.com/dev/apikey
 steam_key = ""
 
-# Base URL of this site. Should end with a slash.
+# Base URL of this site. Should *NOT* end with a slash.
 # Used for redirecting the user after logging in with OpenID
-url = "http://example.com/"
+url = "http://example.com"

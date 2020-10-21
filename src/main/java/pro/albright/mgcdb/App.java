@@ -5,6 +5,7 @@ import static spark.Spark.get;
 import java.sql.SQLException;
 
 import pro.albright.mgcdb.Controllers.GameC;
+import pro.albright.mgcdb.Controllers.UserC;
 import pro.albright.mgcdb.Util.Tasks;
 
 /**
@@ -19,6 +20,9 @@ public class App {
       get("/games", GameC::gamesByRelease);
       get("/games/:filter", GameC::gamesByRelease);
       get("/games/:filter/:page", GameC::gamesByRelease);
+
+      get("/user/authenticate", UserC::authenticate);
+      get("/user/authenticated", UserC::authenticated);
     }
     else {
       // Run an administrative task.
