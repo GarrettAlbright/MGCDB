@@ -26,4 +26,8 @@ public class StatusCodes {
   public static final int GENERAL_OUTGOING_NETWORK_ERROR = 30;
   // Building a URI failed.
   public static final int URI_BUILDING_FAILED = 31;
+
+  /* OpenID issues */
+  // General OpenID error
+  public static final int GENERAL_OPENID_ERROR = 40;
 }

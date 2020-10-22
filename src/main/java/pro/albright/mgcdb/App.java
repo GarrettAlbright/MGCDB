@@ -23,6 +23,8 @@ public class App {
 
       get("/user/authenticate", UserC::authenticate);
       get("/user/authenticated", UserC::authenticated);
+
+      get("/user", UserC::userPage);
     }
     else {
       // Run an administrative task.
