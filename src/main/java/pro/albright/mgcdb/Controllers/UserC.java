@@ -16,6 +16,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static spark.Spark.halt;
+
 /**
  * Controller for user-related routes.
  */
@@ -36,14 +38,12 @@ public class UserC extends Controller {
   public static String authenticate(Request req, Response res) {
     ConsumerManager mgr = getConsumerMgr();
     Session session = req.session();
-    // TODO don't let the user continue if they're already logged in
-
     try {
       List discoveries = mgr.discover("https://steamcommunity.com/openid");
       DiscoveryInformation discoInfo = mgr.associate(discoveries);
       session.attribute("openid-discoveries", discoInfo);
       String url = Config.get("url");
-      AuthRequest authReq = mgr.authenticate(discoveries, url + "/user/authenticated");
+      AuthRequest authReq = mgr.authenticate(discoveries, url + "/auth/authenticated");
       System.out.println(authReq.getDestinationUrl(true));
       res.redirect(authReq.getDestinationUrl(true), HttpStatus.SC_TEMPORARY_REDIRECT);
     }
@@ -111,5 +111,43 @@ public class UserC extends Controller {
       consumerMgr.setNonceVerifier(new InMemoryNonceVerifier());
     }
     return consumerMgr;
+  }
+
+  /**
+   * "Before" handler to ensure the user isn't authenticated. Redirects the user
+   * to "/user" if they are already authenticated.
+   * @param req
+   * @param res
+   */
+  public static void ensureNotAuthenticated(Request req, Response res) {
+   Session session = req.session(false);
+   if (session != null && session.attribute("steam-id") != null) {
+     // The user is already authenticated. Don't try to authenticate them again.
+     // Redirect to the user page.
+     res.redirect("/user?alreadyAuthenticated=1", HttpStatus.SC_TEMPORARY_REDIRECT);
+     halt();
+   }
+  }
+
+  /**
+   * "Before" handler to ensure the user is authenticated. Redirects the user to
+   * "/auth" to start the authentication process if they are not.
+   *
+   * TODO A way to redirect the user to the page they were trying to get to
+   * after they successfully authenticate.
+   *
+   * @param req
+   * @param res
+   */
+  public static void ensureAuthenticated(Request req, Response res) {
+    Session session = req.session(false);
+    if (session != null) {
+      long steamId = (long) req.session().attribute("steam-id");
+      if (steamId != 0) {
+        return;
+      }
+    }
+    res.redirect("/auth", HttpStatus.SC_TEMPORARY_REDIRECT);
+    halt();
   }
 }

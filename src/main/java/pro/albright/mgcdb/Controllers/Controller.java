@@ -2,6 +2,8 @@ package pro.albright.mgcdb.Controllers;
 
 import org.apache.velocity.app.VelocityEngine;
 import spark.ModelAndView;
+import spark.Request;
+import spark.Response;
 import spark.template.velocity.VelocityTemplateEngine;
 
 import java.nio.file.Path;
@@ -56,4 +58,5 @@ public class Controller {
       tple = new VelocityTemplateEngine(veloEngine);
     }
     return tple;
-  }}
+  }
+}
