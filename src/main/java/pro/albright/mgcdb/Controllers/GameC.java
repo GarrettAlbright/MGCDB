@@ -77,6 +77,6 @@ public class GameC extends Controller {
     model.put("totalPages", gameResult.getTotalPages());
     model.put("currentPage", gameResult.getCurrentPageZeroBased() + 1);
 
-    return render(model, "gamesByRelease.vm");
+    return render(req, model, "gamesByRelease.vm");
   }
 }

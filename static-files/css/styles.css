@@ -1,8 +1,7 @@
 body {
   background-color: #192109; /* HSLuv(105.4, 74.9, 11.2) */
   color: #576c2f; /* 105.4, 74.9, 42.8 */
-	font-family: Tahoma, Verdana, Segoe, sans-serif;
-
+  font-family: Tahoma, Verdana, Segoe, sans-serif;
 }
 
 a:link,
@@ -11,18 +10,23 @@ a:visited {
 }
 
 a:active {
-	color: #7e863e; /* 91.9, 74.9, 53.8 */
+  color: #7e863e; /* 91.9, 74.9, 53.8 */
+}
+
+aside.auth-box {
+  float: right;
+  margin: 0 0 1rem 1rem;
 }
 
 /* "Button:" #1d1f09 - 91.9, 74.9, 11.2 */
 
 table {
-	width: 100%;
+  width: 100%;
 }
 
 @media screen and (min-width: 640px) {
-	body {
-		width: 640px;
-		margin: 0 auto;
-	}
+  body {
+    width: 640px;
+    margin: 0 auto;
+  }
 }

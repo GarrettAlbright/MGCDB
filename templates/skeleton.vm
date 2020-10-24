@@ -6,6 +6,13 @@
     <title>Mac Game Compatibility Database#if($title) - $title#end</title>
   </head>
   <body>
+    <aside class="auth-box">
+      #if($authenticated)
+        Logged in as $userSteamId - <a href="$baseUrl/user/log-out" title="Log out of MGCDB">Log out</a>
+      #else
+        <a href="$baseUrl/auth" title="Log in to MGCDB with Steam"><img src="$baseUrl/static/img/sits_small.png" width="154" height="23" alt="Sign In Through Steam icon"></a>
+      #end
+    </aside>
   	<h1>MGCDB</h1>
     #parse($template)
   </body>

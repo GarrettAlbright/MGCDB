@@ -1,9 +1,11 @@
 package pro.albright.mgcdb.Controllers;
 
 import org.apache.velocity.app.VelocityEngine;
+import pro.albright.mgcdb.Util.Config;
 import spark.ModelAndView;
 import spark.Request;
 import spark.Response;
+import spark.Session;
 import spark.template.velocity.VelocityTemplateEngine;
 
 import java.nio.file.Path;
@@ -24,8 +26,20 @@ public class Controller {
    *
    * TODO Put this in a parent class once I have more than one controller
    */
-  protected static String render(Map<String, Object> model, String template) {
+  protected static String render(Request req, Map<String, Object> model, String template) {
+    Session session = req.session(false);
+    if (session == null) {
+      model.put("authenticated", false);
+    }
+    else {
+      model.put("authenticated", true);
+      model.put("userSteamId", session.attribute("steam-id"));
+    }
+
+    model.put("baseUrl", Config.get("url"));
+
     model.put("template", template);
+
     return getTemplateEngine().render(new ModelAndView(model, "skeleton.vm"));
   }
 

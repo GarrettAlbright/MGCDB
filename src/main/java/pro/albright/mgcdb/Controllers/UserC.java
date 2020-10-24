@@ -97,7 +97,20 @@ public class UserC extends Controller {
     long steamId = (long) req.session().attribute("steam-id");
     Map<String, Object> model = new HashMap<>();
     model.put("steamId", steamId);
-    return render(model, "user.vm");
+    return render(req, model, "user.vm");
+  }
+
+  /**
+   * Log the user out and redirect them to the front page.
+   * @param req
+   * @param res
+   * @return
+   */
+  public static String logOut(Request req, Response res) {
+    Session session = req.session(false);
+    session.invalidate();
+    res.redirect("/?loggedOut=1", HttpStatus.SC_TEMPORARY_REDIRECT);
+    return("");
   }
 
   /**

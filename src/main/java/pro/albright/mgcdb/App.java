@@ -34,6 +34,10 @@ public class App {
 
       before("/user", UserC::ensureAuthenticated);
       get("/user", UserC::userPage);
+      path("/user", () -> {
+        before("/*", UserC::ensureAuthenticated);
+        get("/log-out", UserC::logOut);
+      });
     }
     else {
       // Run an administrative task.
