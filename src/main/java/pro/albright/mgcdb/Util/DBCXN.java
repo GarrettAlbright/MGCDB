@@ -32,7 +32,7 @@ public class DBCXN {
       // read-only connection at the same time without encountering locking
       // issues
       // https://www.sqlite.org/wal.html
-      // 
+      //
       config.setJournalMode(SQLiteConfig.JournalMode.WAL);
       cxn = config.createConnection("jdbc:sqlite:" + path);
       cxn.setAutoCommit(false);
@@ -287,6 +287,9 @@ public class DBCXN {
           Object value = parameters.get(index);
           if (value.getClass() == Integer.class) {
             stmt.setInt(index, (Integer) value);
+          }
+          else if (value.getClass() == Long.class) {
+            stmt.setLong(index, (Long) value);
           }
           else {
             stmt.setString(index, value.toString());

@@ -46,7 +46,7 @@ public class SteamCxn {
     HashMap<String, String> params = new HashMap<>();
     params.put("last_appid", String.valueOf(lastAppId));
     params.put("max_results", String.valueOf(limit));
-    URI uri = buildApiUri("IStoreService", "GetAppList", params);
+    URI uri = buildApiUri("IStoreService", "GetAppList", "v1", params);
 
     GetAppListResponseWrapper response = makeRequestAndReturnBean(uri, GetAppListResponseWrapper.class);
 
@@ -104,6 +104,22 @@ public class SteamCxn {
     return response.contains("1055-ISJM-8568") ? Game.GamePropStatus.NO : Game.GamePropStatus.YES;
   }
 
+  public PlayerSummary getUserInfo(long steamId) {
+    Map<String, String> params = new HashMap<>();
+    params.put("steamids", String.valueOf(steamId));
+    URI uri = buildApiUri("ISteamUser", "GetPlayerSummaries", "v0002", params);
+
+    GetPlayerSummariesResponseWrapper gpsrw = makeRequestAndReturnBean(uri, GetPlayerSummariesResponseWrapper.class);
+
+    for (PlayerSummary ps : gpsrw.getResponse().getPlayers()) {
+      if (ps.getSteamid() == steamId) {
+        return ps;
+      }
+    }
+
+    return null;
+  }
+
   /**
    * Build a Steam API URL.
    *
@@ -112,11 +128,12 @@ public class SteamCxn {
    * @param params Additional URL parameters.
    * @return The generated URI.
    */
-  private URI buildApiUri(String iface, String method, HashMap<String, String> params) {
+  private URI buildApiUri(String iface, String method, String vNum, Map<String, String> params) {
     String initialString = "https://api.steampowered.com/" +
       iface + "/" +
       method + "/" +
-      "v1?key=" + steamKey;
+      vNum +
+      "?key=" + steamKey;
     URI built = null;
     try {
       URIBuilder ub = new URIBuilder(initialString);

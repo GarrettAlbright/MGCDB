@@ -6,6 +6,7 @@ import org.openid4java.discovery.DiscoveryInformation;
 import org.openid4java.discovery.Identifier;
 import org.openid4java.message.AuthRequest;
 import org.openid4java.message.ParameterList;
+import pro.albright.mgcdb.Model.User;
 import pro.albright.mgcdb.Util.Config;
 import pro.albright.mgcdb.Util.StatusCodes;
 import spark.Request;
@@ -76,6 +77,8 @@ public class UserC extends Controller {
         // Strip off the numbers at the end.
         String[] slashParts = id.toString().split("/");
         long steamId = Long.parseLong(slashParts[slashParts.length - 1]);
+        User user = User.getBySteamId(steamId, true);
+
         req.session().attribute("steam-id", steamId);
         res.redirect(url + "/user", HttpStatus.SC_TEMPORARY_REDIRECT);
       }

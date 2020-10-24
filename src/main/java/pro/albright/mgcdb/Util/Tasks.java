@@ -81,6 +81,22 @@ public class Tasks {
       "END;";
     stmt.addBatch(createGamesQuery);
     stmt.addBatch(createGamesTriggerQuery);
+
+    String createUsersQuery = "CREATE TABLE users ( " +
+      "user_id INTEGER PRIMARY KEY, " +
+      "steam_user_id INTEGER UNIQUE, " +
+      "nickname VARCHAR(255) NOT NULL DEFAULT '', " +
+      "avatar_hash VARCHAR(255) NOT NULL DEFAULT '', " +
+      "last_auth TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, " +
+      "created TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, " +
+      "updated TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)";
+    String createUsersTriggerQuery = "CREATE TRIGGER update_users " +
+      "AFTER UPDATE ON users FOR EACH ROW BEGIN " +
+      "UPDATE users SET updated = CURRENT_TIMESTAMP WHERE user_id = OLD.user_id; " +
+      "END;";
+    stmt.addBatch(createUsersQuery);
+    stmt.addBatch(createUsersTriggerQuery);
+
     stmt.executeBatch();
     cxn.commit();
     System.out.println("Database creation complete.");
