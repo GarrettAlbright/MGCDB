@@ -29,7 +29,7 @@ public class GameC extends Controller {
       page = Integer.parseInt(filterStr) - 1;
     }
     catch (NumberFormatException e) {
-      filter = filterStr;
+      filter = filterStr == null ? "all" : filterStr;
       String pageStr = req.params(":page");
       if (pageStr != null) {
         try {
