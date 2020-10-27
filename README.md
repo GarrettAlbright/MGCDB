@@ -36,14 +36,14 @@ The web daemon will run on port 4567 by default (this can be changed in the conf
 server {
 	listen 80;
 	server_name mgcdb.test;
-	
+
 	location /static/ {
 		alias /path/to/mgcdb/static/;
 	}
-	
+
 	location / {
 		proxy_pass http://localhost:4567;
-	}  
+	}
 }
 ```
 
@@ -73,7 +73,7 @@ MGCDB will automatically select which games to find updates for based on which g
 2. Clone the project.
 3. `cd` into project directory.
 4. Copy and edit the configuration file (see "Configuration" above).
-6. Build a JAR: `mmvn clean package assembly:single`. The JAR will be in the `target` directory. Optionally move it to a more convenient spot.
+6. Build a JAR: `mvn clean package assembly:single`. The JAR will be in the `target` directory. Optionally move it to a more convenient spot.
 7. Initialize the database: `java -jar path/to/mgcdb.jar initdb`
 8. Fetch some games: `java -jar path/to/mgcdb.jar newgames`. Note that this will not fetch every game currently on Steam, but will give you a few to experiment with.
 9. Fetch details for those games: `java -jar path/to/mgcdb.jar updategames`
@@ -88,7 +88,7 @@ This project is not created or authorized by Valve Corporation, the operators of
 
 All game information, including titles, descriptions, and images, should be considered the property of the respective games' publishers and reused by MGCDB for informational purposes only (and to help increase their sales and reduce their refunds!). No claim as to the ownership of this information is to be inferred.
 
-MGCDB is licensed under the BSD 2-clause license. Various libraries used by MGCDB (see 
+MGCDB is licensed under the BSD 2-clause license. Various libraries used by MGCDB (see
 pom.xml) will have their own license terms but all are FOSS-licensed.
 
 Special thanks to the members of the ##java channel on Freenode for help throughout my Java learning experience.
