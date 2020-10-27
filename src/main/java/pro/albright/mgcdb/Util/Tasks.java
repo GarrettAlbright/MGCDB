@@ -38,9 +38,6 @@ public class Tasks {
         }
         updateGames(updateGameLimit);
         break;
-      case "auth":
-        testAuth();
-        break;
       default:
         System.err.printf("Handler for task %s not found.", task);
         System.exit(StatusCodes.NO_TASK_HANDLER);
@@ -129,9 +126,5 @@ public class Tasks {
         System.out.printf("/!\\ Game %s (%d) did not successfully update (API call failed?)%n", oldGame.getTitle(), oldGame.getSteamId());
       }
     }
-  }
-
-  public static void testAuth() {
-//    User.getSession();
   }
 }
