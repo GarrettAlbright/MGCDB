@@ -1,6 +1,7 @@
 package pro.albright.mgcdb.Controllers;
 
 import org.apache.velocity.app.VelocityEngine;
+import pro.albright.mgcdb.Model.User;
 import pro.albright.mgcdb.Util.Config;
 import spark.ModelAndView;
 import spark.Request;
@@ -28,16 +29,25 @@ public class Controller {
    */
   protected static String render(Request req, Map<String, Object> model, String template) {
     Session session = req.session(false);
-    if (session == null) {
-      model.put("authenticated", false);
+    User user = null;
+    if (session != null) {
+      long steamId = session.attribute("steam-id");
+      if (steamId != 0) {
+        user = User.getBySteamId(steamId);
+      }
+    }
+
+    if (user != null) {
+      model.put("authenticated", true);
+      model.put("userSteamId", user.getSteamId());
+      model.put("userSteamNickname", user.getNickname());
+      model.put("userSteamAvatar", user.getAvatarUrl());
     }
     else {
-      model.put("authenticated", true);
-      model.put("userSteamId", session.attribute("steam-id"));
+      model.put("authenticated", false);
     }
 
     model.put("baseUrl", Config.get("url"));
-
     model.put("template", template);
 
     return getTemplateEngine().render(new ModelAndView(model, "skeleton.vm"));

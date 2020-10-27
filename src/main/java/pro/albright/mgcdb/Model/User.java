@@ -50,8 +50,8 @@ public class User implements Serializable {
     this.avatarHash = avatarHash;
   }
 
-  public static User getBySteamId(long steamId, boolean createIfNotFound) {
-    User user = User.getBySteamId(steamId);
+  public static User authWithSteamId(long steamId, boolean createIfNotFound) {
+    User user = User.authWithSteamId(steamId);
     if (user == null && createIfNotFound) {
       SteamCxn scxn = new SteamCxn();
       PlayerSummary ps = scxn.getUserInfo(steamId);
@@ -67,22 +67,29 @@ public class User implements Serializable {
     return user;
   }
 
+  public static User authWithSteamId(long steamId) {
+    User user = User.getBySteamId(steamId);
+    if (user != null) {
+      user.bumpAuthDate();
+    }
+    return user;
+  }
+
   public static User getBySteamId(long steamId) {
+    User user = null;
     Map<Integer, Object> params = new HashMap<>();
     params.put(1, steamId);
     ResultSet rs = DBCXN.doSelectQuery("SELECT * FROM users WHERE steam_user_id = ?", params);
     try {
       if (rs.next()) {
-        User user = User.createFromResultSet(rs);
-        user.bumpAuthDate();
-        return user;
+        user = User.createFromResultSet(rs);
       }
     }
     catch (SQLException throwables) {
       throwables.printStackTrace();
       System.exit(StatusCodes.GENERAL_SQL_ERROR);
     }
-    return null;
+    return user;
   }
 
   public static User createFromResultSet(ResultSet rs) {
@@ -99,6 +106,11 @@ public class User implements Serializable {
       System.exit(StatusCodes.GENERAL_SQL_ERROR);
     }
     return null;
+  }
+
+  public String getAvatarUrl() {
+    String firstTwo = avatarHash.substring(0, 2);
+    return String.format("https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/%s/%s.jpg", firstTwo, avatarHash);
   }
 
   public void bumpAuthDate() {

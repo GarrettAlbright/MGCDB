@@ -18,6 +18,12 @@ aside.auth-box {
   margin: 0 0 1rem 1rem;
 }
 
+aside.auth-box img.steam-avatar {
+  height: 1.1em;
+  width: auto;
+  vertical-align: bottom;
+}
+
 /* "Button:" #1d1f09 - 91.9, 74.9, 11.2 */
 
 table {

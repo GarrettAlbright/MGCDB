@@ -77,7 +77,7 @@ public class UserC extends Controller {
         // Strip off the numbers at the end.
         String[] slashParts = id.toString().split("/");
         long steamId = Long.parseLong(slashParts[slashParts.length - 1]);
-        User user = User.getBySteamId(steamId, true);
+        User user = User.authWithSteamId(steamId, true);
 
         req.session().attribute("steam-id", steamId);
         res.redirect(url + "/user", HttpStatus.SC_TEMPORARY_REDIRECT);

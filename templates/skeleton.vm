@@ -8,7 +8,7 @@
   <body>
     <aside class="auth-box">
       #if($authenticated)
-        Logged in as $userSteamId - <a href="$baseUrl/user/log-out" title="Log out of MGCDB">Log out</a>
+        Logged in as <img src="$userSteamAvatar" alt="Steam Avatar" class="steam-avatar" width="15" height="15"> $userSteamNickname - <a href="$baseUrl/user/log-out" title="Log out of MGCDB">Log out</a>
       #else
         <a href="$baseUrl/auth" title="Log in to MGCDB with Steam"><img src="$baseUrl/static/img/sits_small.png" width="154" height="23" alt="Sign In Through Steam icon"></a>
       #end
