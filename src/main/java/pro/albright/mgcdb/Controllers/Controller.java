@@ -5,7 +5,6 @@ import pro.albright.mgcdb.Model.User;
 import pro.albright.mgcdb.Util.Config;
 import spark.ModelAndView;
 import spark.Request;
-import spark.Response;
 import spark.Session;
 import spark.template.velocity.VelocityTemplateEngine;
 
@@ -24,10 +23,11 @@ public class Controller {
    *
    * Note that a "model" as Spark's template system calls it is not an actual
    * model but just a map of placeholder values.
-   *
-   * TODO Put this in a parent class once I have more than one controller
    */
   protected static String render(Request req, Map<String, Object> model, String template) {
+    // Load the user so we can put some user info in the "model."
+    // TODO this is kind of inefficient since it's quite likely we've loaded
+    // this same user's info at least once already for other tasks.
     Session session = req.session(false);
     User user = null;
     if (session != null) {
@@ -55,19 +55,16 @@ public class Controller {
 
   /**
    * Show a 404 page.
-   *
-   * TODO Put this in a parent class once I have more than one controller
    */
   protected static void fourOhFour() {
     Map<String, Object> model = new HashMap<>();
-    model.put("foo", "bar");
     ModelAndView mav = new ModelAndView(model, "404.vm");
     String output = getTemplateEngine().render(mav);
     notFound(output);
   }
 
   /**
-   * Get the Velocity tempalte engine instance, instantiating it first if
+   * Get the Velocity template engine instance, instantiating it first if
    * necessary.
    *
    * @return The VelocityTemplateEngine instance.
