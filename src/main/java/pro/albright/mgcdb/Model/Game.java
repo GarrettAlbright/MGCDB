@@ -1,6 +1,7 @@
 package pro.albright.mgcdb.Model;
 
 import pro.albright.mgcdb.SteamAPIModel.GetAppDetailsApp;
+import pro.albright.mgcdb.SteamAPIModel.GetAppDetailsReleaseDate;
 import pro.albright.mgcdb.SteamAPIModel.GetAppListApp;
 import pro.albright.mgcdb.Util.DBCXN;
 import pro.albright.mgcdb.Util.PagedQueryResult;
@@ -285,7 +286,7 @@ public class Game implements java.io.Serializable {
       parameters.put(3, mac.value);
       parameters.put(4, sixtyFour.value);
       parameters.put(5, silicon.value);
-      parameters.put(6, steamReleaseDate.toString());
+      parameters.put(6, steamReleaseDate == null ? null : steamReleaseDate.toString());
       parameters.put(7, gameId);
     }
 
@@ -317,12 +318,14 @@ public class Game implements java.io.Serializable {
     }
 
     setTitle(updatedGame.getName());
+
     try {
       setSteamReleaseDate(updatedGame.getRelease_date().getDateAsLocalDate());
     }
     catch (ParseException e) {
-      System.err.print("Error parsing date while updating game from Steam.");
-      System.exit(StatusCodes.GENERAL_OUTGOING_NETWORK_ERROR);
+      // This happens for 8980 (Borderlands Game of the Year) which has a blank
+      // release date in the JSON for some reason.
+      System.err.printf("Error parsing date for %d while updating game from Steam. Date as string is \"%s\"%n", this.getSteamId(), updatedGame.getRelease_date().getDate());
     }
     Boolean mac = updatedGame.getPlatforms().get("mac");
     if (mac != null) {
@@ -375,7 +378,12 @@ public class Game implements java.io.Serializable {
         game.setCreated(DBCXN.parseTimestamp(rs.getString("created")));
         game.setUpdated(DBCXN.parseTimestamp(rs.getString("updated")));
         game.setSteamUpdated(DBCXN.parseTimestamp(rs.getString("steam_updated")));
-        game.setSteamReleaseDate(LocalDate.parse(rs.getString("steam_release")));
+        String steamRelease = rs.getString("steam_release");
+        if (!steamRelease.isEmpty()) {
+          // The release date can be empty when the data from Steam did not have
+          // a release date (the field in the JSON was an empty string).
+          game.setSteamReleaseDate(LocalDate.parse(steamRelease));
+        }
         games.add(game);
       }
     }
