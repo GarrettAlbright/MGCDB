@@ -55,7 +55,7 @@ For other web daemons, please refer to its documentation to see how to configure
 
 Initializes the database by creating the required tables. The location for the database file can be specified in the configuration file. Remember the file and its enclosing directory should be writable by whatever user you're running tasks (and the web daemon itself) as.
 
-Warning: If you have a currently-existing database, this command will blow it away and recreate it fresh with zero warning!
+The parameter `delete` may be passed, in which case *any existing database file will be deleted* and recreated from scratch (*all* data will be lost). Otherwise, if a database file already exists, this task will attempt to create any tables which do not already exist in it.
 
 ### `newgames`
 

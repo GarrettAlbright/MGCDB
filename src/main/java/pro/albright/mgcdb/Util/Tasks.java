@@ -1,7 +1,6 @@
 package pro.albright.mgcdb.Util;
 
 import pro.albright.mgcdb.Model.Game;
-import pro.albright.mgcdb.Model.User;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -20,7 +19,8 @@ public class Tasks {
     switch (task) {
       case "initdb":
         // Initialize the database
-        initDb();
+        boolean deleteIfExists = params.length > 0 && params[1].equals("delete");
+        initDb(deleteIfExists);
         break;
       case "newgames":
         int gameLimit = params.length < 1 ? 100 : Integer.parseInt(params[0]);
@@ -49,11 +49,18 @@ public class Tasks {
    *
    * @throws SQLException An SQL-related error occurred.
    */
-  private static void initDb() throws SQLException {
-    DBCXN.createIfNotExists(true);
+  private static void initDb(boolean deleteIfExists) throws SQLException {
+    if (deleteIfExists) {
+      System.out.println("Any existing database will be deleted. Hope you meant to do that.");
+    }
+    else {
+      System.out.println("Existing database (if any) will be used; non-existing tables will be created.");
+      System.out.println("Pass `delete` parameter to delete any existing database.");
+    }
+    DBCXN.createIfNotExists(deleteIfExists);
     Connection cxn = DBCXN.getCxn();
     Statement stmt = cxn.createStatement();
-    String createGamesQuery = "CREATE TABLE games ( " +
+    String createGamesQuery = "CREATE TABLE IF NOT EXISTS games ( " +
       // Note that id has to be an INTEGER, not UNSIGNED INTEGER, in order for
       // it to be a proper alias for the SQLite rowid.
       // https://www.sqlite.org/lang_createtable.html#rowid
@@ -72,14 +79,14 @@ public class Tasks {
       "updated TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, " +
       "steam_release TEXT NOT NULL DEFAULT '0000-01-01', " +
       "steam_updated TEXT NOT NULL DEFAULT '0000-01-01 00:00:00')";
-    String createGamesTriggerQuery = "CREATE TRIGGER update_games " +
+    String createGamesTriggerQuery = "CREATE TRIGGER IF NOT EXISTS update_games " +
       "AFTER UPDATE ON games FOR EACH ROW BEGIN " +
       "UPDATE games SET updated = CURRENT_TIMESTAMP WHERE game_id = OLD.game_id; " +
       "END;";
     stmt.addBatch(createGamesQuery);
     stmt.addBatch(createGamesTriggerQuery);
 
-    String createUsersQuery = "CREATE TABLE users ( " +
+    String createUsersQuery = "CREATE TABLE IF NOT EXISTS users ( " +
       "user_id INTEGER PRIMARY KEY, " +
       "steam_user_id INTEGER UNIQUE, " +
       "nickname VARCHAR(255) NOT NULL DEFAULT '', " +
@@ -87,12 +94,19 @@ public class Tasks {
       "last_auth TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, " +
       "created TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, " +
       "updated TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)";
-    String createUsersTriggerQuery = "CREATE TRIGGER update_users " +
+    String createUsersTriggerQuery = "CREATE TRIGGER IF NOT EXISTS update_users " +
       "AFTER UPDATE ON users FOR EACH ROW BEGIN " +
       "UPDATE users SET updated = CURRENT_TIMESTAMP WHERE user_id = OLD.user_id; " +
       "END;";
     stmt.addBatch(createUsersQuery);
     stmt.addBatch(createUsersTriggerQuery);
+
+    String createOwnershipQuery = "CREATE TABLE IF NOT EXISTS ownership (" +
+      "ownership_id INTEGER PRIMARY KEY, " +
+      "user_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE, " +
+      "game_id INTEGER NOT NULL REFERENCES games(game_id) ON DELETE CASCADE, " +
+      "created TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)";
+    stmt.addBatch(createOwnershipQuery);
 
     stmt.executeBatch();
     cxn.commit();
