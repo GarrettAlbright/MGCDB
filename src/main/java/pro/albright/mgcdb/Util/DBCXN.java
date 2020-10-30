@@ -34,6 +34,7 @@ public class DBCXN {
       // https://www.sqlite.org/wal.html
       //
       config.setJournalMode(SQLiteConfig.JournalMode.WAL);
+      config.enforceForeignKeys(true);
       cxn = config.createConnection("jdbc:sqlite:" + path);
       cxn.setAutoCommit(false);
     }

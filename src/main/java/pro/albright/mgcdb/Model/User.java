@@ -188,7 +188,7 @@ public class User implements Serializable {
   }
 
   /**
-   * Save the user's information to the databsae.
+   * Save the user's information to the database.
    */
   public void save() {
     Map<Integer, Object> params = new HashMap<>();
