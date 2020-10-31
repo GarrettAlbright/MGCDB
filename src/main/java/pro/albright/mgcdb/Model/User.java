@@ -8,8 +8,11 @@ import pro.albright.mgcdb.Util.SteamCxn;
 import java.io.Serializable;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class User implements Serializable {
 
@@ -143,6 +146,29 @@ public class User implements Serializable {
   }
 
   /**
+   * Load a user by userId.
+   *
+   * @param userId The userId.
+   * @return The user.
+   */
+  public static User getById(int userId) {
+    User user = null;
+    Map<Integer, Object> params = new HashMap<>();
+    params.put(1, userId);
+    ResultSet rs = DBCXN.doSelectQuery("SELECT * FROM users WHERE user_id = ?", params);
+    try {
+      if (rs.next()) {
+        user = User.createFromResultSet(rs);
+      }
+    }
+    catch (SQLException throwables) {
+      throwables.printStackTrace();
+      System.exit(StatusCodes.GENERAL_SQL_ERROR);
+    }
+    return user;
+  }
+
+  /**
    * Create a user from a result set from a query.
    *
    * @param rs The result set.
@@ -185,6 +211,37 @@ public class User implements Serializable {
     Map<Integer, Object> params = new HashMap<>();
     params.put(1, userId);
     DBCXN.doUpdateQuery("UPDATE users SET last_auth = CURRENT_TIMESTAMP where user_id = ?", params);
+  }
+
+  /**
+   * Update the list of games that this user owns.
+   *
+   * Note that we don't instantiate the Ownership or Game instances and just
+   * deal with the respective IDs since it's possible that a user will own
+   * several hundred games.
+   */
+  public void updateOwnedGames() {
+    SteamCxn steamCxn = new SteamCxn();
+    int[] steamGameIds = steamCxn.getOwnedGamesInSteam(steamId);
+    // Convert array to list so we can use .contains because apparently Java
+    // doesn't have something similar for regular arrays… oof
+    // https://stackoverflow.com/a/34428978/11023
+    List<Integer> steamOwnedGameIds = Arrays.stream(Game.getGameIdsBySteamIds(steamGameIds)).boxed().collect(Collectors.toUnmodifiableList());
+    List<Integer> dbOwnedGameIds = Arrays.stream(Ownership.getOwnedGamesInDb(userId)).boxed().collect(Collectors.toUnmodifiableList());
+
+    // Find Steam owned games that aren't in the DB yet
+    for (Integer steamOwnedGameId : steamOwnedGameIds) {
+      if (!dbOwnedGameIds.contains(steamOwnedGameId)) {
+        new Ownership(userId, steamOwnedGameId).save();
+      }
+    }
+
+    // Now find games owned in the DB which weren't found in Steam
+    for (Integer dbOwnedGameId : dbOwnedGameIds) {
+      if (!steamOwnedGameIds.contains(dbOwnedGameId)) {
+        Ownership.delete(userId, dbOwnedGameId);
+      }
+    }
   }
 
   /**

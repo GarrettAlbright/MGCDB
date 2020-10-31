@@ -121,6 +121,29 @@ public class SteamCxn {
   }
 
   /**
+   * Get a list of games (by Steam IDs) that a user owns according to Steam.
+   *
+   * @param steamUserId
+   * @return A list of Steam game IDs.
+   */
+  public int[] getOwnedGamesInSteam(long steamUserId) {
+    Map<String, String> params = new HashMap<>();
+    params.put("steamid", String.valueOf(steamUserId));
+    params.put("include_played_free_games", "1");
+    URI uri = buildApiUri("IPlayerService", "GetOwnedGames", "v1", params);
+
+    GetOwnedGamesResponseWrapper gogrw = makeRequestAndReturnBean(uri, GetOwnedGamesResponseWrapper.class);
+    GetOwnedGamesResponse gogr = gogrw.getResponse();
+
+    int[] ownedGamesSteamIds = new int[gogr.getGame_count()];
+    int index = 0;
+    for (OwnedGameInstance ogi : gogr.getGames()) {
+      ownedGamesSteamIds[index++] = ogi.getAppid();
+    }
+    return ownedGamesSteamIds;
+  }
+
+  /**
    * Build a Steam API URL.
    *
    * @param iface The interface the method to call belongs to.

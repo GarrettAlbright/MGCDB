@@ -1,6 +1,7 @@
 package pro.albright.mgcdb.Util;
 
 import pro.albright.mgcdb.Model.Game;
+import pro.albright.mgcdb.Model.User;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -37,6 +38,9 @@ public class Tasks {
           System.exit(StatusCodes.BAD_TASK_PARAM);
         }
         updateGames(updateGameLimit);
+        break;
+      case "updateownership":
+        updateOwnership(1);
         break;
       default:
         System.err.printf("Handler for task %s not found.", task);
@@ -140,5 +144,10 @@ public class Tasks {
         System.out.printf("/!\\ Game %s (%d) did not successfully update (API call failed?)%n", oldGame.getTitle(), oldGame.getSteamId());
       }
     }
+  }
+
+  public static void updateOwnership(int userId) {
+    User me = User.getById(1);
+    me.updateOwnedGames();
   }
 }

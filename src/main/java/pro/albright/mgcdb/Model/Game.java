@@ -1,5 +1,6 @@
 package pro.albright.mgcdb.Model;
 
+import org.apache.commons.lang.StringUtils;
 import pro.albright.mgcdb.SteamAPIModel.GetAppDetailsApp;
 import pro.albright.mgcdb.SteamAPIModel.GetAppDetailsReleaseDate;
 import pro.albright.mgcdb.SteamAPIModel.GetAppListApp;
@@ -11,10 +12,8 @@ import pro.albright.mgcdb.Util.SteamCxn;
 import java.sql.*;
 import java.text.ParseException;
 import java.time.LocalDate;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Bean class to encapsulate a game.
@@ -392,6 +391,50 @@ public class Game implements java.io.Serializable {
       System.exit(StatusCodes.GENERAL_SQL_ERROR);
     }
     return games.toArray(new Game[0]);
+  }
+
+  /**
+   * Get our own gameId values for a given array of steamId values.
+   *
+   * @param steamIds An array of steamId values.
+   * @return An array of gameIds.
+   */
+  public static int[] getGameIdsBySteamIds(int[] steamIds) {
+    // The SQLite driver doesn't support passing an array of values for an IN()
+    // query (I guess only Postgres's does?) so we build a string with a bunch
+    // of question marks we bind into later.
+    int steamIdsLength = steamIds.length;
+    // https://stackoverflow.com/a/49065337/11023
+    String questionMarks = "?, ".repeat(steamIdsLength).substring(0, (steamIdsLength * 3) - 2);
+    String query = "SELECT game_id FROM games WHERE steam_id IN (" + questionMarks +")";
+    Map<Integer, Object> params = new HashMap<>();
+    int paramIdx = 1;
+    for (int steamId : steamIds) {
+      params.put(paramIdx++, steamId);
+    }
+    ResultSet rs = DBCXN.doSelectQuery(query, params);
+
+    // Note that the SQLite driver doesn't let us do the cursor back and forth
+    // by which we can get the count of rows in a ResultSet ("SQLite only
+    // supports TYPE_FORWARD_ONLY cursors"). So… sigh… we'll use a List and
+    // convert it later.
+    ArrayList<Integer> gameIds = new ArrayList<>();
+    try {
+      while (rs.next()) {
+        gameIds.add(rs.getInt("game_id"));
+      }
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+      System.exit(StatusCodes.GENERAL_SQL_ERROR);
+    }
+
+    // Java collections are just so much fun you know.
+    int[] returnVals = new int[gameIds.size()];
+    for (int idx = 0; idx < returnVals.length; idx++) {
+      returnVals[idx] = gameIds.get(idx);
+    }
+    return returnVals;
   }
 
   /**

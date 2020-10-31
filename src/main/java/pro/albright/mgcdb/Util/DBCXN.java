@@ -8,6 +8,7 @@ import java.io.File;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Map;
 
@@ -269,8 +270,10 @@ public class DBCXN {
    *
    * @param query The query.
    * @param parameters A Map<Integer, Object> of parameters for the query.
-   *                   Currently we expect Object to be either an Integer or a
-   *                   String.
+   *                   Currently we expect Object to be one of the following:
+   *                   - int
+   *                   - long
+   *                   - String
    * @param cxn The connection to prepare the query against.
    * @return A PreparedStatement generated from the query and parameters.
    */
@@ -286,10 +289,12 @@ public class DBCXN {
       if (parameters != null) {
         for (Integer index : parameters.keySet()) {
           Object value = parameters.get(index);
-          if (value.getClass() == Integer.class) {
+          Class paramClass = value.getClass();
+          // Apparently we can't do a switch statement with a class.
+          if (paramClass == Integer.class) {
             stmt.setInt(index, (Integer) value);
           }
-          else if (value.getClass() == Long.class) {
+          else if (paramClass == Long.class) {
             stmt.setLong(index, (Long) value);
           }
           else {
