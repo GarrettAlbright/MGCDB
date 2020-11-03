@@ -133,8 +133,8 @@ public class UserC extends Controller {
    * @param res
    */
   public static void ensureNotAuthenticated(Request req, Response res) {
-   Session session = req.session(false);
-   if (session != null && session.attribute("user-id") != null) {
+   User user = req.attribute("user");
+   if (user != null) {
      // The user is already authenticated. Don't try to authenticate them again.
      // Redirect to the user page.
      res.redirect("/user?alreadyAuthenticated=1", HttpStatus.SC_TEMPORARY_REDIRECT);
@@ -153,14 +153,10 @@ public class UserC extends Controller {
    * @param res
    */
   public static void ensureAuthenticated(Request req, Response res) {
-    Session session = req.session(false);
-    if (session != null) {
-      int steamId = (int) req.session().attribute("user-id");
-      if (steamId != 0) {
-        return;
-      }
+    User user = req.attribute("user");
+    if (user == null) {
+      res.redirect("/auth", HttpStatus.SC_TEMPORARY_REDIRECT);
+      halt();
     }
-    res.redirect("/auth", HttpStatus.SC_TEMPORARY_REDIRECT);
-    halt();
   }
 }

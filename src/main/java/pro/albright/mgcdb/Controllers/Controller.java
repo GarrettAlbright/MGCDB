@@ -26,16 +26,7 @@ public class Controller {
    */
   protected static String render(Request req, Map<String, Object> model, String template) {
     // Load the user so we can put some user info in the "model."
-    // TODO this is kind of inefficient since it's quite likely we've loaded
-    // this same user's info at least once already for other tasks.
-    Session session = req.session(false);
-    User user = null;
-    if (session != null) {
-      int userId = (int) session.attribute("user-id");
-      if (userId != 0) {
-        user = User.getById(userId);
-      }
-    }
+    User user = (User) req.attribute("user");
 
     if (user != null) {
       model.put("authenticated", true);

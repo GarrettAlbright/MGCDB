@@ -4,7 +4,9 @@ import java.sql.SQLException;
 
 import pro.albright.mgcdb.Controllers.GameC;
 import pro.albright.mgcdb.Controllers.UserC;
+import pro.albright.mgcdb.Model.User;
 import pro.albright.mgcdb.Util.Tasks;
+import spark.Session;
 
 import static spark.Spark.*;
 
@@ -16,6 +18,27 @@ public class App {
     if (args.length == 0) {
       // Start server
       System.out.println("Starting server.");
+
+      // Load a User object for later use if the user is authenticated.
+      before("*", (req, res) -> {
+        // If we have a user ID in the session, load the user
+        Session session = req.session(false);
+        if (session != null) {
+          // session.attribute throws an exception if the attribute can't be
+          // found rather than doing something sensible like returning null or
+          // zero
+          try {
+            int userId = session.attribute("user-id");
+            User user = User.getById(userId);
+            if (user != null) {
+              req.attribute("user", user);
+            }
+          }
+          catch (Exception e) {
+            // Oh well
+          }
+        }
+      });
 
       get("/games", GameC::gamesByRelease);
       get("/games/:filter", GameC::gamesByRelease);
