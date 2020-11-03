@@ -45,7 +45,6 @@ public class UserC extends Controller {
       session.attribute("openid-discoveries", discoInfo);
       String url = Config.get("url");
       AuthRequest authReq = mgr.authenticate(discoveries, url + "/auth/authenticated");
-      System.out.println(authReq.getDestinationUrl(true));
       res.redirect(authReq.getDestinationUrl(true), HttpStatus.SC_TEMPORARY_REDIRECT);
     }
     catch (Exception e) {
@@ -79,7 +78,7 @@ public class UserC extends Controller {
         long steamId = Long.parseLong(slashParts[slashParts.length - 1]);
         User user = User.authWithSteamId(steamId, true);
 
-        req.session().attribute("steam-id", steamId);
+        req.session().attribute("user-id", user.getUserId());
         res.redirect(url + "/user", HttpStatus.SC_TEMPORARY_REDIRECT);
       }
     }
@@ -97,9 +96,7 @@ public class UserC extends Controller {
    * @return
    */
   public static String userPage(Request req, Response res) {
-    long steamId = (long) req.session().attribute("steam-id");
     Map<String, Object> model = new HashMap<>();
-    model.put("steamId", steamId);
     return render(req, model, "user.vm");
   }
 
@@ -137,7 +134,7 @@ public class UserC extends Controller {
    */
   public static void ensureNotAuthenticated(Request req, Response res) {
    Session session = req.session(false);
-   if (session != null && session.attribute("steam-id") != null) {
+   if (session != null && session.attribute("user-id") != null) {
      // The user is already authenticated. Don't try to authenticate them again.
      // Redirect to the user page.
      res.redirect("/user?alreadyAuthenticated=1", HttpStatus.SC_TEMPORARY_REDIRECT);
@@ -158,7 +155,7 @@ public class UserC extends Controller {
   public static void ensureAuthenticated(Request req, Response res) {
     Session session = req.session(false);
     if (session != null) {
-      long steamId = (long) req.session().attribute("steam-id");
+      int steamId = (int) req.session().attribute("user-id");
       if (steamId != 0) {
         return;
       }

@@ -31,9 +31,9 @@ public class Controller {
     Session session = req.session(false);
     User user = null;
     if (session != null) {
-      long steamId = session.attribute("steam-id");
-      if (steamId != 0) {
-        user = User.getBySteamId(steamId);
+      int userId = (int) session.attribute("user-id");
+      if (userId != 0) {
+        user = User.getById(userId);
       }
     }
 
