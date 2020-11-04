@@ -5,7 +5,6 @@ import pro.albright.mgcdb.Model.User;
 import pro.albright.mgcdb.Util.Config;
 import spark.ModelAndView;
 import spark.Request;
-import spark.Session;
 import spark.template.velocity.VelocityTemplateEngine;
 
 import java.nio.file.Path;
@@ -39,6 +38,7 @@ public class Controller {
     }
 
     model.put("baseUrl", Config.get("url"));
+    model.put("linkBase", Config.get("link_base"));
     model.put("template", template);
 
     return getTemplateEngine().render(new ModelAndView(model, "skeleton.vm"));

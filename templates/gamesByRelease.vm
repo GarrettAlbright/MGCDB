@@ -1,6 +1,6 @@
 <h2>All Games by Release</h2>
 
-<nav class="table-fmt">Show: <a href="/games" title="Show all games">All</a> <a href="/games/mac" title="Show only games which are Mac compatible">Mac only</a> <a href="/games/cat" title="Show only games which are Catalina compatible">Catalina</a></nav>
+<nav class="table-fmt">Show: <a href="$linkBase/games" title="Show all games">All</a> <a href="$linkBase/games/mac" title="Show only games which are Mac compatible">Mac only</a> <a href="$linkBase/games/cat" title="Show only games which are Catalina compatible">Catalina</a></nav>
 <table>
 	<tr>
 		<th colspan="2">Game Title</th>
@@ -22,6 +22,6 @@
 </table>
 <ul>
 #foreach ($page in [1..$totalPages])
-<li>#if ($page == $currentPage)$page#else<a href="/games/$page">$page</a>#end</li>
+<li>#if ($page == $currentPage)$page#else<a href="$linkBase/games/$page">$page</a>#end</li>
 #end
 </ul>

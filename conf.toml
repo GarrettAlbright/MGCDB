@@ -8,6 +8,14 @@ db_location = "~/mgcdb.sqlite"
 # Get this at https://steamcommunity.com/dev/apikey
 steam_key = ""
 
-# Base URL of this site. Should *NOT* end with a slash.
+# Absolute base URL of this site. Should *NOT* end with a slash.
 # Used for redirecting the user after logging in with OpenID
 url = "http://example.com"
+
+
+# Relative base URL of this site. Should *NOT* end with a slash.
+# Used for building internal links to other MGCDB URLs. Should be relative to
+# the base server URL. For example, if the site will be operating at
+# "http://example.com/mgcdb", set this to "/mgcdb". If this will be at the root
+# level of a server, set it to an empty string.
+link_base = ""
