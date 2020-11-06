@@ -6,8 +6,10 @@ import org.openid4java.discovery.DiscoveryInformation;
 import org.openid4java.discovery.Identifier;
 import org.openid4java.message.AuthRequest;
 import org.openid4java.message.ParameterList;
+import pro.albright.mgcdb.Model.Game;
 import pro.albright.mgcdb.Model.User;
 import pro.albright.mgcdb.Util.Config;
+import pro.albright.mgcdb.Util.PagedQueryResult;
 import pro.albright.mgcdb.Util.StatusCodes;
 import spark.Request;
 import spark.Response;
@@ -97,6 +99,9 @@ public class UserC extends Controller {
    */
   public static String userPage(Request req, Response res) {
     Map<String, Object> model = new HashMap<>();
+    User user = req.attribute("user");
+    PagedQueryResult<Game> games = user.getOwnedGames(1);
+    model.put("games", games);
     return render(req, model, "user.vm");
   }
 

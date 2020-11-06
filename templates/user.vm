@@ -2,3 +2,32 @@
 <p>
   We&rsquo;ve logged you in.
 </p>
+<table>
+  <thead>
+  	<tr>
+  		<th colspan="2">Game Title</th>
+  		<th>Release</th>
+  		<th>Mac?</th>
+  		<th>Catalina?</th>
+  	</tr>
+  </thead>
+  <tbody>
+  	#foreach($game in $games.Results)
+  		<tr>
+  			<td>
+  				<img src="https://cdn.cloudflare.steamstatic.com/steam/apps/$game.SteamId/capsule_184x69.jpg" width="92" height="35" alt="Game capsule banner">
+  			</td>
+  			<td>$game.Title</td>
+  			<td>$game.SteamReleaseDate</td>
+  			<td>#if ($game.Mac == "NO") No #elseif ($game.Mac == "YES") Yes #else ? #end</td>
+  			<td>#if ($game.SixtyFour == "NO") No #elseif ($game.SixtyFour == "YES") Yes #else ? #end</td>
+  		</tr>
+  	#end
+  </tbody>
+</table>
+<ul>
+#foreach ($page in [1..$games.TotalPages])
+<li>#if ($page == $games.CurrentPage)$page#else<a href="$linkBase/user/$page">$page</a>#end</li>
+#end
+</ul>
+

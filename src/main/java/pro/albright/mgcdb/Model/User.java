@@ -2,6 +2,7 @@ package pro.albright.mgcdb.Model;
 
 import pro.albright.mgcdb.SteamAPIModel.PlayerSummary;
 import pro.albright.mgcdb.Util.DBCXN;
+import pro.albright.mgcdb.Util.PagedQueryResult;
 import pro.albright.mgcdb.Util.StatusCodes;
 import pro.albright.mgcdb.Util.SteamCxn;
 
@@ -242,6 +243,20 @@ public class User implements Serializable {
         Ownership.delete(userId, dbOwnedGameId);
       }
     }
+  }
+
+  public PagedQueryResult<Game> getOwnedGames(int page) {
+    String selectQuery = "SELECT g.* FROM ownership o INNER JOIN games g ON o.game_id = g.game_id WHERE o.user_id = ? ORDER BY g.steam_release DESC LIMIT ? OFFSET ?";
+    String countQuery = "SELECT COUNT(*) FROM ownership o INNER JOIN games g ON o.game_id = g.game_id WHERE o.user_id = ?";
+    Map<Integer, Object> params = new HashMap<>();
+    params.put(1, userId);
+    int count = DBCXN.getSingleIntResult(countQuery, params);
+
+    params.put(2, Game.perPage);
+    params.put(3, page * Game.perPage);
+    ResultSet rs = DBCXN.doSelectQuery(selectQuery, params);
+    Game[] games = Game.createFromResultSet(rs);
+    return new PagedQueryResult<>(games, count, Game.perPage, page);
   }
 
   /**
