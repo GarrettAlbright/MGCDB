@@ -32,7 +32,7 @@ public class Tasks {
         newGames(gameLimit);
         break;
       case "updategames":
-        int updateGameLimit = params.length < 1 ? 100 : Integer.parseInt(params[0]);
+        int updateGameLimit = params.length < 1 ? 200 : Integer.parseInt(params[0]);
         if (updateGameLimit > 200) {
           System.err.println("Steam will respond with errors if we try to update more than 200 games in a five-minute period, so refusing to attempt to do so.");
           System.exit(StatusCodes.BAD_TASK_PARAM);

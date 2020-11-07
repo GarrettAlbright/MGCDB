@@ -218,7 +218,7 @@ public class SteamCxn {
       System.exit(StatusCodes.GENERAL_OUTGOING_NETWORK_ERROR);
     }
     if (statusCode < 200 || statusCode >= 300) {
-      System.err.printf("Unexpected status code %s while making Steam request.", statusCode);
+      System.err.printf("Unexpected status code %s while making Steam request.%n", statusCode);
       System.exit(StatusCodes.GENERAL_OUTGOING_NETWORK_ERROR);
     }
     return json;

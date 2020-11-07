@@ -59,7 +59,7 @@ The parameter `delete` may be passed, in which case *any existing database file 
 
 ### `newgames`
 
-Fetches information for games which are not currently in the database from Steam. Optionally a second parameter with the number of new games to fetch, up to 50,000; currently fetches 100 by default (note it will fetch fewer if there aren't that many new games to fetch).
+Fetches information for games which are not currently in the database from Steam. Optionally a second parameter with the number of new games to fetch, up to 50,000; currently fetches 200 by default (note it will fetch fewer if there aren't that many new games to fetch).
 
 ### `updategames`
 
