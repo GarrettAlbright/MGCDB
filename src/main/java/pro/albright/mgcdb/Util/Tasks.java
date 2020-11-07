@@ -12,6 +12,9 @@ public class Tasks {
   /**
    * Invoke a task.
    *
+   * The code in each task should just validate parameter(s), then pass off to
+   * a separate method.
+   *
    * @param task The task name
    * @param params Parameters which the task may need, from the CLI invocation.
    * @throws SQLException An SQL-related error occurred.
@@ -39,11 +42,24 @@ public class Tasks {
         }
         updateGames(updateGameLimit);
         break;
+      case "updategame":
+        int toUpdate = params.length < 1 ? 0 : Integer.parseInt(params[0]);
+        if (toUpdate == 0) {
+          System.err.println("Please specify the MGCDB ID of the game to update.");
+          System.exit(StatusCodes.BAD_TASK_PARAM);
+        }
+        Game game = Game.getById(toUpdate);
+        if (game == null) {
+          System.err.printf("A game matching ID %d was not found.%n", toUpdate);
+          System.exit(StatusCodes.BAD_TASK_PARAM);
+        }
+        updateGame(game);
+        break;
       case "updateownership":
         updateOwnership(1);
         break;
       default:
-        System.err.printf("Handler for task %s not found.", task);
+        System.err.printf("Handler for task %s not found.%n", task);
         System.exit(StatusCodes.NO_TASK_HANDLER);
     }
   }
@@ -139,11 +155,16 @@ public class Tasks {
   public static void updateGames(int limit) {
     Game[] oldGames = Game.getGamesToUpdate(limit);
     for (Game oldGame : oldGames) {
-      System.out.printf("Updating game %s (%d)%n", oldGame.getTitle(), oldGame.getSteamId());
+      System.out.printf("Updating game %s (Our ID: %d, Steam ID: %d)%n", oldGame.getTitle(), oldGame.getGameId(), oldGame.getSteamId());
       if (!oldGame.updateFromSteam()) {
         System.out.printf("/!\\ Game %s (%d) did not successfully update (API call failed?)%n", oldGame.getTitle(), oldGame.getSteamId());
       }
     }
+  }
+
+  public static void updateGame(Game game) {
+    System.out.printf("Updating game %s (Our ID: %d, Steam ID: %d)%n", game.getTitle(), game.getGameId(), game.getSteamId());
+    game.updateFromSteam();
   }
 
   public static void updateOwnership(int userId) {

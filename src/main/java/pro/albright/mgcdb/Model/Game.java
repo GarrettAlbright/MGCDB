@@ -438,6 +438,20 @@ public class Game implements java.io.Serializable {
   }
 
   /**
+   * Get game by our game ID.
+   * @param gameId The game id.
+   * @return The Game.
+   */
+  public static Game getById(int gameId) {
+    String query = "SELECT * FROM games WHERE game_id = ?";
+    Map<Integer, Object> params = new HashMap<>();
+    params.put(1, gameId);
+    ResultSet rs = DBCXN.doSelectQuery(query, params);
+    Game[] games =  Game.createFromResultSet(rs);
+    return games.length > 0 ? games[0] : null;
+  }
+
+  /**
    * Get games by release date.
    *
    * @param page The current page of results to fetch (zero-based)
