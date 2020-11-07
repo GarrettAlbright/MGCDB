@@ -96,7 +96,7 @@ public class SteamCxn {
    * scraping. Barf.
    */
   public Game.GamePropStatus getCatalinaStatus(Game game) {
-    URI uri = URI.create("https://store.steampowered.com/app/245170/");
+    URI uri = URI.create("https://store.steampowered.com/app/" + game.getSteamId());
     String response = fetchRawResponseBody(uri);
     // We'll look for the ID of Steam's KB article about Catalina. It's
     // likely that that link will be there in the future even if there are
