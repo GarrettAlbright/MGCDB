@@ -60,6 +60,8 @@ public class App {
       path("/user", () -> {
         before("/*", UserC::ensureAuthenticated);
         get("/log-out", UserC::logOut);
+        get("/games", UserC::userGames);
+        get("/games/:page", UserC::userGames);
       });
     }
     else {

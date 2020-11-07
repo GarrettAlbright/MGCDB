@@ -100,9 +100,29 @@ public class UserC extends Controller {
   public static String userPage(Request req, Response res) {
     Map<String, Object> model = new HashMap<>();
     User user = req.attribute("user");
-    PagedQueryResult<Game> games = user.getOwnedGames(1);
+    PagedQueryResult<Game> games = user.getOwnedGames(0);
     model.put("games", games);
     return render(req, model, "user.vm");
+  }
+
+  public static String userGames(Request req, Response res) {
+    int page = 0;
+    String pageStr = req.params(":page");
+    if (pageStr != null) {
+      try {
+        page = Integer.parseInt(pageStr) - 1;
+      }
+      catch (NumberFormatException e2) {
+        // Saw a second parameter which wasn't a page number.
+        fourOhFour();
+        return null;
+      }
+    }
+    Map<String, Object> model = new HashMap<>();
+    User user = req.attribute("user");
+    PagedQueryResult<Game> games = user.getOwnedGames(page);
+    model.put("games", games);
+    return render(req, model, "userGames.vm");
   }
 
   /**
