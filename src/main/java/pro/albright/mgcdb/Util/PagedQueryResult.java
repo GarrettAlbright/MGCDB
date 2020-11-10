@@ -24,7 +24,7 @@ public class PagedQueryResult<T> {
    */
   private int currentPageZeroBased;
   /**
-   * The actual results from teh query.
+   * The actual results from the query.
    */
   private T[] results;
 
@@ -65,7 +65,7 @@ public class PagedQueryResult<T> {
    * @return The number of pages.
    */
   public int getTotalPages() {
-    // Gotta cast the params to float becase Java is one of those lovely
+    // Gotta cast the params to float because Java is one of those lovely
     // languages which will always return an int when you divide with ints.
     return (int) Math.ceil((float) totalResults / (float) perPage);
   }
