@@ -129,6 +129,19 @@ public class Game implements java.io.Serializable {
    */
   private Ownership ownership;
 
+  /**
+   * The number of votes on 64-bit compatibility this game has received.
+   *
+   * This may be unset where irrelevant.
+   */
+  private int voteCount;
+
+  /**
+   * Of the number of votes this game has received, the number that were "yes"
+   * votes.
+   */
+  private int yesVoteCount;
+
   public int getGameId() {
     return gameId;
   }
@@ -215,6 +228,22 @@ public class Game implements java.io.Serializable {
 
   public void setOwnership(Ownership ownership) {
     this.ownership = ownership;
+  }
+
+  public int getVoteCount() {
+    return voteCount;
+  }
+
+  public void setVoteCount(int voteCount) {
+    this.voteCount = voteCount;
+  }
+
+  public int getYesVoteCount() {
+    return yesVoteCount;
+  }
+
+  public void setYesVoteCount(int yesVoteCount) {
+    this.yesVoteCount = yesVoteCount;
   }
 
   /**
@@ -412,6 +441,16 @@ public class Game implements java.io.Serializable {
         catch (SQLException e) {
           // Oh well
         }
+
+        // Same as above with vote counts
+        try {
+          game.setVoteCount(rs.getInt("vote_count"));
+          game.setYesVoteCount(rs.getInt("yes_vote_count"));
+        }
+        catch (SQLException e) {
+          // Oh well
+        }
+
         games.add(game);
       }
     }
@@ -489,35 +528,53 @@ public class Game implements java.io.Serializable {
   public static PagedQueryResult<Game> getByReleaseDate(int page, GameFilterMode filter) {
     int offset = perPage * page;
     Map<Integer, Object> params = new HashMap<>();
-    StringBuilder paramsSb = new StringBuilder(" FROM games WHERE ");
+    String where = "";
 
     if (filter == GameFilterMode.MAC) {
       // Only Mac games
-      paramsSb.append("mac = ? ");
+      where = " AND mac = ? ";
       params.put(1, GamePropStatus.YES.value);
     }
     else if (filter == GameFilterMode.CATALINA) {
       // Only Catalina/64-bit games
-      paramsSb.append("sixtyfour = ? ");
+      where = " AND sixtyfour = ? ";
       params.put(1, GamePropStatus.YES.value);
     }
     else {
       // All games
-      paramsSb.append("mac <> ? ");
+      where = " AND mac <> ? ";
       params.put(1, GamePropStatus.UNCHECKED.value);
     }
 
-    String paramsPart = paramsSb.toString();
-
-    String selectQuery = "SELECT *" + paramsPart + "ORDER BY steam_release DESC LIMIT ? OFFSET ?";
-    String countQuery = "SELECT COUNT(*)" + paramsPart;
+    String countQuery = "SELECT COUNT(*) FROM games WHERE steam_release <= CURRENT_TIMESTAMP" + where;
     int count = DBCXN.getSingleIntResult(countQuery, params);
 
+    String selectQuery = "SELECT g.*, COUNT(v.vote_id) AS vote_count, SUM(v.vote) AS yes_vote_count " +
+      "FROM games g LEFT JOIN ownership o USING (game_id) " +
+      "LEFT JOIN votes v USING (ownership_id) " +
+      "WHERE g.steam_release <= CURRENT_TIMESTAMP" + where +
+      "GROUP BY 1 ORDER BY g.steam_release DESC LIMIT ? OFFSET ?";
     params.put(2, perPage);
     params.put(3, offset);
     ResultSet rs = DBCXN.doSelectQuery(selectQuery, params);
     Game[] games = createFromResultSet(rs);
 
     return new PagedQueryResult<Game>(games, count, perPage, page);
+  }
+
+  /**
+   * Return the yes vote count for this game as a percentage of total votes.
+   *
+   * The percentage is rounded to the nearest integer.
+   *
+   * @return The percentage of yes votes.
+   */
+  public int getYesVoteAsPercentage() {
+    // Avoid division by zero
+    if (voteCount == 0) {
+      return 0;
+    }
+    float ratio = (float) yesVoteCount / (float) voteCount;
+    return Math.round(ratio * 100);
   }
 }

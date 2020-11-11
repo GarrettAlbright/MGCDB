@@ -3,25 +3,27 @@
 <nav class="table-fmt">Show: <a href="$linkBase/games" title="Show all games">All</a> <a href="$linkBase/games/mac" title="Show only games which are Mac compatible">Mac only</a> <a href="$linkBase/games/cat" title="Show only games which are Catalina compatible">Catalina</a></nav>
 <table>
   <thead>
-  	<tr>
-  		<th colspan="2">Game Title</th>
-  		<th>Release</th>
-  		<th>Mac?</th>
-  		<th>Catalina?</th>
-  	</tr>
+    <tr>
+      <th colspan="2">Game Title</th>
+      <th>Release</th>
+      <th>Mac?</th>
+      <th>Catalina?</th>
+      <th>Catalina votes</th>
+    </tr>
   </thead>
   <tbody>
-  	#foreach($game in $games)
-  		<tr>
-  			<td>
-  				<img src="https://cdn.cloudflare.steamstatic.com/steam/apps/$game.SteamId/capsule_184x69.jpg" width="92" height="35" alt="Game capsule banner">
-  			</td>
-  			<td>$game.Title</td>
-  			<td>$game.SteamReleaseDate</td>
-  			<td>#if ($game.Mac == "NO") No #elseif ($game.Mac == "YES") Yes #else ? #end</td>
-  			<td>#if ($game.SixtyFour == "NO") No #elseif ($game.SixtyFour == "YES") Yes #else ? #end</td>
-  		</tr>
-  	#end
+    #foreach($game in $games)
+      <tr>
+        <td>
+          <img src="https://cdn.cloudflare.steamstatic.com/steam/apps/$game.SteamId/capsule_184x69.jpg" width="92" height="35" alt="Game capsule banner">
+        </td>
+        <td>$game.Title</td>
+        <td>$game.SteamReleaseDate</td>
+        <td>#if ($game.Mac == "NO") No #elseif ($game.Mac == "YES") Yes #else ? #end</td>
+        <td>#if ($game.SixtyFour == "NO") No #elseif ($game.SixtyFour == "YES") Yes #else ? #end</td>
+        <td>#if ($game.VoteCount == 0) -- #else $game.YesVoteAsPercentage% #end</td>
+      </tr>
+    #end
   </tbody>
 </table>
 <ul>
