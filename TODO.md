@@ -11,3 +11,4 @@ Must-haves before being "done":
 Nice to haves:
 - [ ] Allow specifying custom port for daemon in config
 - [ ] Allow specifying custom config file location from CLI
+- [ ] Adult game filter (remove all the damned "hentai poker" games and so on)
