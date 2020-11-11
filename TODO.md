@@ -7,6 +7,7 @@ Must-haves before being "done":
 - [x] Votes
 - [ ] Searchable game list
 - [ ] Tests, probably
+- [ ] Link to game's Steam store page
 
 Nice to haves:
 - [ ] Allow specifying custom port for daemon in config
