@@ -128,6 +128,16 @@ public class Tasks {
       "created TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)";
     stmt.addBatch(createOwnershipQuery);
 
+    // Note that we do not make ownership_id UNIQUE because in the future there
+    // may be more than one type of vote (in which case a "type" column will
+    // need to be added).
+    String createVotesQuery = "CREATE TABLE IF NOT EXISTS votes (" +
+      "vote_id INTEGER PRIMARY KEY, " +
+      "ownership_id INTEGER NOT NULL REFERENCES ownership(ownership_id) ON DELETE CASCADE, " +
+      "vote INTEGER NOT NULL, " +
+      "created TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)";
+    stmt.addBatch(createVotesQuery);
+
     stmt.executeBatch();
     cxn.commit();
     System.out.println("Database creation complete.");

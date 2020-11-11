@@ -69,4 +69,15 @@ public class PagedQueryResult<T> {
     // languages which will always return an int when you divide with ints.
     return (int) Math.ceil((float) totalResults / (float) perPage);
   }
+
+  /**
+   * The current page, one based (the first page is 1, not 0).
+   *
+   * This helps us not have to do messy math in the templates.
+   *
+   * @return The current page, one based.
+   */
+  public int getCurrentPageOneBased() {
+    return currentPageZeroBased + 1;
+  }
 }

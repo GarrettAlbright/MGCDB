@@ -257,6 +257,9 @@ public class DBCXN {
       stmt.close();
       cxn.commit();
       cxn.close();
+      // The changes will not be readable by the read-only connection until it
+      // is closed.
+      getReadOnlyCxn().close();
     }
     catch (SQLException throwables) {
       throwables.printStackTrace();

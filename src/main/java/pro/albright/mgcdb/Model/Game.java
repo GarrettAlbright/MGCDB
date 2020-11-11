@@ -122,6 +122,13 @@ public class Game implements java.io.Serializable {
    */
   private LocalDate steamReleaseDate;
 
+  /**
+   * The current user's ownership for this game.
+   *
+   * This is relevant for user-owned game lists. Outside that it will be null.
+   */
+  private Ownership ownership;
+
   public int getGameId() {
     return gameId;
   }
@@ -200,6 +207,14 @@ public class Game implements java.io.Serializable {
 
   public void setSteamReleaseDate(LocalDate steamReleaseDate) {
     this.steamReleaseDate = steamReleaseDate;
+  }
+
+  public Ownership getOwnership() {
+    return ownership;
+  }
+
+  public void setOwnership(Ownership ownership) {
+    this.ownership = ownership;
   }
 
   /**
@@ -383,11 +398,25 @@ public class Game implements java.io.Serializable {
           // a release date (the field in the JSON was an empty string).
           game.setSteamReleaseDate(LocalDate.parse(steamRelease));
         }
+
+        // If ownership info was included in the result set, create that info.
+        // Using exceptions for this is gross but other approaches are even
+        // grosser.
+        // https://stackoverflow.com/q/3599861/11023
+        try {
+          int ownershipId = rs.getInt("ownership_id");
+          if (ownershipId != 0) {
+            game.setOwnership(Ownership.createFromResultSet(rs));
+          }
+        }
+        catch (SQLException e) {
+          // Oh well
+        }
         games.add(game);
       }
     }
     catch (Exception e) {
-      System.err.println("Error trying to load game from DB row");
+      e.printStackTrace();
       System.exit(StatusCodes.GENERAL_SQL_ERROR);
     }
     return games.toArray(new Game[0]);

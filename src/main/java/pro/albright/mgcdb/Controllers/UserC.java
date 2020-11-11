@@ -7,7 +7,9 @@ import org.openid4java.discovery.Identifier;
 import org.openid4java.message.AuthRequest;
 import org.openid4java.message.ParameterList;
 import pro.albright.mgcdb.Model.Game;
+import pro.albright.mgcdb.Model.Ownership;
 import pro.albright.mgcdb.Model.User;
+import pro.albright.mgcdb.Model.Vote;
 import pro.albright.mgcdb.Util.Config;
 import pro.albright.mgcdb.Util.PagedQueryResult;
 import pro.albright.mgcdb.Util.StatusCodes;
@@ -92,7 +94,8 @@ public class UserC extends Controller {
   }
 
   /**
-   * Show general info about the current user.
+   * Show general info about the current user and the first page of their owned
+   * games list.
    * @param req
    * @param res
    * @return
@@ -105,6 +108,13 @@ public class UserC extends Controller {
     return render(req, model, "user.vm");
   }
 
+  /**
+   * A list of a user's owned games.
+   *
+   * @param req
+   * @param res
+   * @return
+   */
   public static String userGames(Request req, Response res) {
     int page = 0;
     String pageStr = req.params(":page");
@@ -122,8 +132,60 @@ public class UserC extends Controller {
     User user = req.attribute("user");
     PagedQueryResult<Game> games = user.getOwnedGames(page);
     model.put("games", games);
+    model.put("voteSuccessful", req.queryParams("voteSuccessful") != null);
     return render(req, model, "userGames.vm");
   }
+
+  /**
+   * Take a vote on Catalina functionality.
+   * @param req
+   * @param res
+   */
+  public static String takeVote(Request req, Response res) {
+    User user = (User) req.attribute("user");
+    // Confirm the user actually owns this game.
+    int ownershipId = Integer.parseInt(req.params(":ownership"));
+    Ownership ownership = Ownership.getById(ownershipId);
+    if (ownership == null || ownership.getUserId() != user.getUserId()) {
+      halt(HttpStatus.SC_UNAUTHORIZED);
+      return null;
+    }
+
+    String newVote = req.params(":vote");
+    if (!newVote.equals("yes") && !newVote.equals("no") && !newVote.equals("delete")) {
+      // Invalid "vote" value
+      fourOhFour();
+      return null;
+    }
+
+    // Are we creating a new vote or changing an existing one?
+    Vote vote = Vote.getByOwnershipId(ownership.getOwnershipId());
+    if (vote == null && !newVote.equals("delete")) {
+      // Create a new vote
+      vote = new Vote();
+      vote.setOwnershipId(ownership.getOwnershipId());
+    }
+
+    if (newVote.equals("delete")) {
+      if (vote != null) {
+        vote.delete();
+      }
+    }
+    else {
+      vote.setVote(newVote.equals("yes"));
+      vote.save();
+    }
+
+    // Redirect the user back to the same page in their game list.
+    String page = req.queryParams("page");
+    if (page == null || page.equals("")) {
+      page = "1";
+    }
+
+    res.redirect("/user/games/" + page + "?voteSuccessful=1", HttpStatus.SC_SEE_OTHER);
+    return null;
+  }
+
 
   /**
    * Log the user out and redirect them to the front page.

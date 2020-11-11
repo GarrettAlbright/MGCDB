@@ -62,6 +62,7 @@ public class App {
         get("/log-out", UserC::logOut);
         get("/games", UserC::userGames);
         get("/games/:page", UserC::userGames);
+        get("/vote/:ownership/:vote", UserC::takeVote);
       });
     }
     else {

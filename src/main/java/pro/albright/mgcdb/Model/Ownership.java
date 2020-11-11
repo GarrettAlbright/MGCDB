@@ -4,12 +4,13 @@ import pro.albright.mgcdb.Util.DBCXN;
 import pro.albright.mgcdb.Util.StatusCodes;
 
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Class to represent an instance of a User owning a Game.
+ * Class to represent an Ownership - an instance of a User owning a Game.
  *
  * Note that for performance reasons, we don't really instantiate these much, or
  * instantiate Game objects, when we're dealing with ownership. That's because
@@ -18,9 +19,25 @@ import java.util.Map;
  */
 public class Ownership implements java.io.Serializable {
 
+  /**
+   * Our ID for this Ownership.
+   */
   private int ownershipId;
+
+  /**
+   * Our User ID for the user.
+   */
   private int userId;
+
+  /**
+   * Our Game ID for the Game.
+   */
   private int gameId;
+
+  /**
+   * If the user has voted on the game's 64-bit compatibility, that vote.
+   */
+  private Vote vote;
 
   public int getOwnershipId() {
     return ownershipId;
@@ -46,18 +63,81 @@ public class Ownership implements java.io.Serializable {
     this.gameId = gameId;
   }
 
+  public Vote getVote() {
+    return vote;
+  }
+
+  public void setVote(Vote vote) {
+    this.vote = vote;
+  }
+
   public Ownership(int userId, int gameId) {
     this.userId = userId;
     this.gameId = gameId;
   }
 
   /**
+   * Get an Ownership instance by ID.
+   *
+   * @param ownershipId
+   * @return
+   */
+  public static Ownership getById(int ownershipId) {
+    String query = "SELECT * FROM ownership WHERE ownership_id = ?";
+    Map<Integer, Object> params = new HashMap<>();
+    params.put(1, ownershipId);
+    ResultSet rs = DBCXN.doSelectQuery(query, params);
+    try {
+      if (rs.next()) {
+        return Ownership.createFromResultSet(rs);
+      }
+    }
+    catch (SQLException e) {
+      return null;
+    }
+    return null;
+  }
+
+  /**
+   * Create an Ownership instance from a resultset.
+   * @param rs
+   * @return
+   */
+  public static Ownership createFromResultSet(ResultSet rs) {
+    Ownership ownership = null;
+    try {
+      ownership = new Ownership(rs.getInt("user_id"), rs.getInt("game_id"));
+      ownership.setOwnershipId(rs.getInt("ownership_id"));
+
+      // Again, gross exception handling to see if vote info is in the result
+      // set and add it if so
+      // https://stackoverflow.com/q/3599861/11023
+      try {
+        int voteId = rs.getInt("vote_id");
+        if (voteId != 0) {
+          ownership.setVote(Vote.createFromResultSet(rs));
+        }
+      }
+      catch (SQLException e) {
+        // Oh well
+      }
+    }
+    catch (Exception e) {
+      return null;
+    }
+    return ownership;
+  }
+
+  /**
    * Get all gameIds of games owned by a user by user ID in the DB.
+   *
+   * Useful for cases where we just want to handle game IDs rather than full
+   * Game objects for performance reasons.
+   *
+   * @param userId Our ID for the user.
+   * @return An array of game IDs that the user owns.
    */
   static public int[] getOwnedGamesInDb(int userId) {
-//    String query = "SELECT games.* FROM ownership " +
-//      "INNER JOIN games ON game.game_id = ownership.game_id " +
-//      "WHERE user_id = ?";
     String query = "SELECT game_id FROM ownership WHERE user_id = ?";
     Map<Integer, Object> params = new HashMap<>();
     params.put(1, userId);

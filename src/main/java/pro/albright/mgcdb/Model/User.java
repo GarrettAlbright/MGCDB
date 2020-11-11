@@ -245,9 +245,24 @@ public class User implements Serializable {
     }
   }
 
+  /**
+   * Get a list of games owned by this user for display on their user page.
+   *
+   * The Game objects will contain Ownerships, and those Ownerships will
+   * contain a Vote if the user has voted on the game's 64-bit compatibility.
+   *
+   * @param page
+   * @return A PagedQueryResult<Game> of the games they own.
+   */
   public PagedQueryResult<Game> getOwnedGames(int page) {
-    String selectQuery = "SELECT g.* FROM ownership o INNER JOIN games g ON o.game_id = g.game_id WHERE o.user_id = ? ORDER BY g.steam_release DESC LIMIT ? OFFSET ?";
-    String countQuery = "SELECT COUNT(*) FROM ownership o INNER JOIN games g ON o.game_id = g.game_id WHERE o.user_id = ?";
+    String selectQuery = "SELECT * FROM ownership o " +
+      "INNER JOIN games g ON g.game_id = o.game_id " +
+      "LEFT JOIN votes v ON v.ownership_id = o.ownership_id " +
+      "WHERE o.user_id = ? ORDER BY g.steam_release DESC " +
+      "LIMIT ? OFFSET ?";
+    String countQuery = "SELECT COUNT(*) FROM ownership o " +
+      "INNER JOIN games g ON o.game_id = g.game_id "+
+      "WHERE o.user_id = ?";
     Map<Integer, Object> params = new HashMap<>();
     params.put(1, userId);
     int count = DBCXN.getSingleIntResult(countQuery, params);

@@ -1,28 +1,39 @@
+#if ($voteSuccessful)
+<aside class="notification">
+  <p>Your vote was recieved and stored. Thank you for your contribution!</p>
+</aside>
+#end
 <table>
   <thead>
-  	<tr>
-  		<th colspan="2">Game Title</th>
-  		<th>Release</th>
-  		<th>Mac?</th>
-  		<th>Catalina?</th>
-  	</tr>
+    <tr>
+      <th colspan="2">Game Title</th>
+      <th>Release</th>
+      <th>Mac?</th>
+      <th>Catalina?</th>
+      <th>Your vote</th>
+    </tr>
   </thead>
   <tbody>
-  	#foreach($game in $games.Results)
-  		<tr>
-  			<td>
-  				<img src="https://cdn.cloudflare.steamstatic.com/steam/apps/$game.SteamId/capsule_184x69.jpg" width="92" height="35" alt="Game capsule banner">
-  			</td>
-  			<td>$game.Title</td>
-  			<td>$game.SteamReleaseDate</td>
-  			<td>#if ($game.Mac == "NO") No #elseif ($game.Mac == "YES") Yes #else ? #end</td>
-  			<td>#if ($game.SixtyFour == "NO") No #elseif ($game.SixtyFour == "YES") Yes #else ? #end</td>
-  		</tr>
-  	#end
+    #foreach($game in $games.Results)
+      <tr>
+        <td>
+          <img src="https://cdn.cloudflare.steamstatic.com/steam/apps/$game.SteamId/capsule_184x69.jpg" width="92" height="35" alt="Game capsule banner">
+        </td>
+        <td>$game.Title</td>
+        <td>$game.SteamReleaseDate</td>
+        <td>#if ($game.Mac == "NO") No #elseif ($game.Mac == "YES") Yes #else ? #end</td>
+        <td>#if ($game.SixtyFour == "NO") No #elseif ($game.SixtyFour == "YES") Yes #else ? #end</td>
+        <td>#if ($game.Ownership.Vote == $null)
+          <a href="$linkBase/user/vote/$game.Ownership.OwnershipId/yes?page=$games.CurrentPageOneBased">Works</a> | <a href="$linkBase/user/vote/$game.Ownership.OwnershipId/no?page=$games.CurrentPageOneBased">Doesn&rsquo;t Work</a>
+        #else
+          <strong>#if ($game.Ownership.Vote.Vote) Works #else Doesn&rsquo;t Work #end</strong> | <a href="$linkBase/user/vote/$game.Ownership.OwnershipId/delete?page=$games.CurrentPageOneBased">Remove Vote</a>
+        #end</td>
+      </tr>
+    #end
   </tbody>
 </table>
 <ul>
 #foreach ($page in [1..$games.TotalPages])
-<li>#if ($page == $games.CurrentPage)$page#else<a href="$linkBase/user/games/$page">$page</a>#end</li>
+<li>#if ($page == $games.CurrentPageOneBased)$page#else<a href="$linkBase/user/games/$page">$page</a>#end</li>
 #end
 </ul>
