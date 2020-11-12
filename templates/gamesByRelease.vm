@@ -1,6 +1,8 @@
-<h2>All Games by Release</h2>
+<h2>
+  #if ($filter == "mac") Only Mac Games by Release #elseif ($filter == "cat") Only Catalina Games by Release #else All Games by Release #end
+</h2>
 
-<nav class="table-fmt">Show: <a href="$linkBase/games" title="Show all games">All</a> <a href="$linkBase/games/mac" title="Show only games which are Mac compatible">Mac only</a> <a href="$linkBase/games/cat" title="Show only games which are Catalina compatible">Catalina</a></nav>
+<nav class="table-fmt">Show: #if ($filter == "all") All #else <a href="$linkBase/games" title="Show all games">All</a> #end #if ($filter == "mac") Mac only #else <a href="$linkBase/games/mac" title="Show only games which are Mac compatible">Mac only</a> #end #if ($filter == "cat") Catalina #else  <a href="$linkBase/games/cat" title="Show only games which are Catalina compatible">Catalina</a> #end </nav>
 <table>
   <thead>
     <tr>
@@ -12,7 +14,7 @@
     </tr>
   </thead>
   <tbody>
-    #foreach($game in $games)
+    #foreach($game in $games.Results)
       <tr>
         <td>
           <img src="https://cdn.cloudflare.steamstatic.com/steam/apps/$game.SteamId/capsule_184x69.jpg" width="92" height="35" alt="Game capsule banner">
@@ -27,7 +29,7 @@
   </tbody>
 </table>
 <ul>
-#foreach ($page in [1..$totalPages])
-<li>#if ($page == $currentPage)$page#else<a href="$linkBase/games/$page">$page</a>#end</li>
+#foreach ($page in [1..$games.TotalPages])
+<li>#if ($page == $games.CurrentPageOneBased)$page#else<a href="$linkBase/games/$page">$page</a>#end</li>
 #end
 </ul>

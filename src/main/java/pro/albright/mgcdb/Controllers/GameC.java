@@ -72,10 +72,8 @@ public class GameC extends Controller {
     }
 
     Map<String, Object> model = new HashMap<>();
-    model.put("games", gameResult.getResults());
-    model.put("totalGames", gameResult.getTotalResults());
-    model.put("totalPages", gameResult.getTotalPages());
-    model.put("currentPage", gameResult.getCurrentPageZeroBased() + 1);
+    model.put("games", gameResult);
+    model.put("filter", filter);
 
     return render(req, model, "gamesByRelease.vm");
   }
