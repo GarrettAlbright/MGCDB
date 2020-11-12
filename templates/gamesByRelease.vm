@@ -3,33 +3,40 @@
 </h2>
 
 <nav class="table-fmt">Show: #if ($filter == "all") All #else <a href="$linkBase/games" title="Show all games">All</a> #end #if ($filter == "mac") Mac only #else <a href="$linkBase/games/mac" title="Show only games which are Mac compatible">Mac only</a> #end #if ($filter == "cat") Catalina #else  <a href="$linkBase/games/cat" title="Show only games which are Catalina compatible">Catalina</a> #end </nav>
-<table>
-  <thead>
-    <tr>
-      <th colspan="2">Game Title</th>
-      <th>Release</th>
-      <th>Mac?</th>
-      <th>Catalina?</th>
-      <th>Catalina votes</th>
-    </tr>
-  </thead>
-  <tbody>
-    #foreach($game in $games.Results)
+<form method="get" action="$linkBase/games/$filter">
+  <label>Search: <input type="search" name="query" #if ($query) value="$query" #end /></label> <input type="submit" value="Search" />
+</form>
+#if ($games.TotalResults == 0)
+  <p>No games were found matching these terms and/or filters.</p>
+#else
+  <table>
+    <thead>
       <tr>
-        <td>
-          <img src="https://cdn.cloudflare.steamstatic.com/steam/apps/$game.SteamId/capsule_184x69.jpg" width="92" height="35" alt="Game capsule banner">
-        </td>
-        <td>$game.Title</td>
-        <td>$game.SteamReleaseDate</td>
-        <td>#if ($game.Mac == "NO") No #elseif ($game.Mac == "YES") Yes #else ? #end</td>
-        <td>#if ($game.SixtyFour == "NO") No #elseif ($game.SixtyFour == "YES") Yes #else ? #end</td>
-        <td>#if ($game.VoteCount == 0) -- #else $game.YesVoteAsPercentage% #end</td>
+        <th colspan="2">Game Title</th>
+        <th>Release</th>
+        <th>Mac?</th>
+        <th>Catalina?</th>
+        <th>Catalina votes</th>
       </tr>
-    #end
-  </tbody>
-</table>
-<ul>
-#foreach ($page in [1..$games.TotalPages])
-<li>#if ($page == $games.CurrentPageOneBased)$page#else<a href="$linkBase/games/$page">$page</a>#end</li>
+    </thead>
+    <tbody>
+      #foreach($game in $games.Results)
+        <tr>
+          <td>
+            <img src="https://cdn.cloudflare.steamstatic.com/steam/apps/$game.SteamId/capsule_184x69.jpg" width="92" height="35" alt="Game capsule banner">
+          </td>
+          <td>$game.Title</td>
+          <td>$game.SteamReleaseDate</td>
+          <td>#if ($game.Mac == "NO") No #elseif ($game.Mac == "YES") Yes #else ? #end</td>
+          <td>#if ($game.SixtyFour == "NO") No #elseif ($game.SixtyFour == "YES") Yes #else ? #end</td>
+          <td>#if ($game.VoteCount == 0) -- #else $game.YesVoteAsPercentage% #end</td>
+        </tr>
+      #end
+    </tbody>
+  </table>
+  <ul>
+  #foreach ($page in [1..$games.TotalPages])
+  <li>#if ($page == $games.CurrentPageOneBased)$page#else<a href="$linkBase/games/$page">$page</a>#end</li>
+  #end
+  </ul>
 #end
-</ul>

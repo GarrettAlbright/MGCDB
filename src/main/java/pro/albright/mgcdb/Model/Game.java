@@ -521,32 +521,53 @@ public class Game implements java.io.Serializable {
 
   /**
    * Get games by release date.
-   *
    * @param page The current page of results to fetch (zero-based)
+   * @param filter How to filter the list.
    * @return A PagedQueryResult<Game> with the results.
    */
   public static PagedQueryResult<Game> getByReleaseDate(int page, GameFilterMode filter) {
+    return getByReleaseDate(page, filter, null);
+  }
+
+    /**
+     * Get games by release date.
+     *
+     * @param page The current page of results to fetch (zero-based)
+     * @param filter How to filter the list.
+     * @param queryParts An array of game name query parts.
+     * @return A PagedQueryResult<Game> with the results.
+     */
+  public static PagedQueryResult<Game> getByReleaseDate(int page, GameFilterMode filter, String[] queryParts) {
     int offset = perPage * page;
     Map<Integer, Object> params = new HashMap<>();
-    String where = "";
+    StringBuilder where = new StringBuilder("");
+    int paramsIdx = 1;
 
     if (filter == GameFilterMode.MAC) {
       // Only Mac games
-      where = " AND mac = ? ";
-      params.put(1, GamePropStatus.YES.value);
+      where.append(" AND g.mac = ? ");
+      params.put(paramsIdx++, GamePropStatus.YES.value);
     }
     else if (filter == GameFilterMode.CATALINA) {
       // Only Catalina/64-bit games
-      where = " AND sixtyfour = ? ";
-      params.put(1, GamePropStatus.YES.value);
+      where.append(" AND g.sixtyfour = ? ");
+      params.put(paramsIdx++, GamePropStatus.YES.value);
     }
     else {
       // All games
-      where = " AND mac <> ? ";
-      params.put(1, GamePropStatus.UNCHECKED.value);
+      where.append(" AND g.mac <> ? ");
+      params.put(paramsIdx++, GamePropStatus.UNCHECKED.value);
     }
 
-    String countQuery = "SELECT COUNT(*) FROM games WHERE steam_release <= CURRENT_TIMESTAMP" + where;
+    if (queryParts != null && queryParts.length > 0) {
+      int partsCount = Math.min(queryParts.length, 5);
+      for (int pIdx = 0; pIdx < partsCount; pIdx++) {
+        where.append(" AND g.title LIKE ? ");
+        params.put(paramsIdx++, "%" + queryParts[pIdx] + "%");
+      }
+    }
+
+    String countQuery = "SELECT COUNT(*) FROM games g WHERE g.steam_release <= CURRENT_TIMESTAMP" + where;
     int count = DBCXN.getSingleIntResult(countQuery, params);
 
     String selectQuery = "SELECT g.*, COUNT(v.vote_id) AS vote_count, SUM(v.vote) AS yes_vote_count " +
@@ -554,8 +575,8 @@ public class Game implements java.io.Serializable {
       "LEFT JOIN votes v USING (ownership_id) " +
       "WHERE g.steam_release <= CURRENT_TIMESTAMP" + where +
       "GROUP BY 1 ORDER BY g.steam_release DESC LIMIT ? OFFSET ?";
-    params.put(2, perPage);
-    params.put(3, offset);
+    params.put(paramsIdx++, perPage);
+    params.put(paramsIdx++, offset);
     ResultSet rs = DBCXN.doSelectQuery(selectQuery, params);
     Game[] games = createFromResultSet(rs);
 

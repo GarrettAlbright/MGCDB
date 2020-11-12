@@ -5,7 +5,7 @@ Must-haves before being "done":
 - [x] Catalina status - screen scraping
 - [x] User accounts
 - [x] Votes
-- [ ] Searchable game list
+- [x] Searchable game list
 - [ ] Tests, probably
 - [ ] Link to game's Steam store page
 
