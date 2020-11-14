@@ -23,12 +23,12 @@
       #foreach($game in $games.Results)
         <tr>
           <td>
-            <img src="https://cdn.cloudflare.steamstatic.com/steam/apps/$game.SteamId/capsule_184x69.jpg" width="92" height="35" alt="Game capsule banner">
+            <a href="https://store.steampowered.com/app/$game.SteamId"><img src="https://cdn.cloudflare.steamstatic.com/steam/apps/$game.SteamId/capsule_184x69.jpg" width="92" height="35" alt="Game capsule banner"></a>
           </td>
-          <td>$esc.html($game.Title)</td>
+          <td><a href="https://store.steampowered.com/app/$game.SteamId">$esc.html($game.Title)</a></td>
           <td>$game.SteamReleaseDate</td>
           <td>#if ($game.Mac == "NO") No #elseif ($game.Mac == "YES") Yes #else ? #end</td>
-          <td>#if ($game.SixtyFour == "NO") No #elseif ($game.SixtyFour == "YES") Yes #else ? #end</td>
+          <td>#if ($game.Mac == "YES") #if ($game.SixtyFour == "NO") No #elseif ($game.SixtyFour == "YES") Yes #else ? #end #end</td>
           <td>#if ($game.VoteCount == 0) -- #else $game.YesVoteAsPercentage% #end</td>
         </tr>
       #end
