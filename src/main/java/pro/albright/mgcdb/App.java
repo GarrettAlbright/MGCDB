@@ -40,6 +40,7 @@ public class App {
         }
       });
 
+      get("/", GameC::front);
       get("/games", GameC::gamesByRelease);
       get("/games/:filter", GameC::gamesByRelease);
       get("/games/:filter/:page", GameC::gamesByRelease);

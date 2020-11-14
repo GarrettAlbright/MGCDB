@@ -1,3 +1,12 @@
+#if ($isFrontPage)
+  <aside class="front-blurb">
+    <h1>Mac Game Compatibility Database</h1>
+    <p>
+      MGCDB is a database of games in the <a href="https://store.steampowered.com/">Steam storefront</a> with information about their compatibility with both macOS Catalina and later and (soon) Apple Silicon, both from Steam itself and crowd-sourced from other Mac gamers, since that information is often missing or incorrect in Steam itself. You can <a href="http://mgcdb.test/auth">log in with Steam</a> and let the community know which games in your library worked for you!
+    </p>
+  </aside>
+#end
+
 <h2>
   #if ($filter == "mac") Only Mac Games by Release #elseif ($filter == "cat") Only Catalina Games by Release #else All Games by Release #end
 </h2>

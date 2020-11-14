@@ -33,6 +33,31 @@ public class GameC extends Controller {
    * @return
    */
   public static String gamesByRelease(Request req, Response res)  {
+    Map<String, Object> model = getModelForGameList(req);
+    model.put("isFrontPage", false);
+    return render(req, model, "gamesByRelease.vm");
+  }
+
+  /**
+   * Show games by release date, plus some additional information that should
+   * only be on the front page.
+   * @param req
+   * @param res
+   * @return
+   */
+  public static String front(Request req, Response res) {
+    Map<String, Object> model = getModelForGameList(req);
+    model.put("isFrontPage", true);
+    return render(req, model, "gamesByRelease.vm");
+  }
+
+  /**
+   * Prepare the "model" for the master game list. Spun out into a separate
+   * method for easy calling from within both gamesByRelease() and front().
+   * @param req
+   * @return
+   */
+  private static HashMap<String, Object> getModelForGameList(Request req) {
     String filterStr = req.params(":filter");
     // If our filter param is numeric, it's actually a page number for the "all"
     // filter.
@@ -101,11 +126,13 @@ public class GameC extends Controller {
       return null;
     }
 
-    Map<String, Object> model = new HashMap<>();
+    HashMap<String, Object> model = new HashMap<>();
     model.put("games", gameResult);
     model.put("filter", filter);
     model.put("query", query);
 
-    return render(req, model, "gamesByRelease.vm");
+    return model;
   }
+
+
 }

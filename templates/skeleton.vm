@@ -8,12 +8,20 @@
   <body>
     <aside class="auth-box">
       #if($authenticated)
-        <img src="$esc.url($userSteamAvatar)" alt="Steam Avatar" class="steam-avatar" width="15" height="15"> $esc.html($userSteamNickname) - <a href="$baseUrl/user" title="View and give feedback on your games">Your games</a> - <a href="$linkBase/user/log-out" title="Log out of MGCDB">Log out</a>
+        <img src="$userSteamAvatar" alt="Steam Avatar" class="steam-avatar" width="15" height="15"> $esc.html($userSteamNickname) - <a href="$baseUrl/user" title="View and give feedback on your games">Your games</a> - <a href="$linkBase/user/log-out" title="Log out of MGCDB">Log out</a>
       #else
         <a href="$baseUrl/auth" title="Log in to MGCDB with Steam"><img src="$linkBase/static/img/sits_small.png" width="154" height="23" alt="Sign In Through Steam icon"></a>
       #end
     </aside>
   	<h1><a href="$baseUrl/" title="Back to Home">MGCDB</a></h1>
     #parse($template)
+    <footer>
+      <p>
+        MGCDB is a creation of <a href="https://albright.pro/">Garrett Albright</a>. MGCDB is an <a href="https://github.com/GarrettAlbright/MGCDB">open-source project</a> by a somewhat novice Java developer; feedback is appreciated.
+      </p>
+       <p>
+       This project is not created by, sponsored by, or affiliated with <a href="https://www.valvesoftware.com/">Valve Corporation</a>, the operators of the Steam platform. All game names, images, and other information used on this site is the copyright of the games&rsquo; respective developers and/or publishers and is used for informational purposes only; no claim of license or ownership of any of this information is made.
+      </p>
+    </footer>
   </body>
 </html>
