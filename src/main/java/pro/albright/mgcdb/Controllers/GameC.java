@@ -24,7 +24,7 @@ public class GameC extends Controller {
    * should be `["foo bar", "baz"]`. Non-paired double quotes should be ignored,
    * so `foo "bar baz` is still `["foo", "bar", "baz"]`.
    */
-  private static Pattern queryPattern = Pattern.compile("(?:\"(.+?)\"|([^\\s\"]+))");
+    private static Pattern queryPattern = Pattern.compile("(?:\"(.+?)\"|([^\\s\"]+))");
 
   /**
    * Show games by release date.

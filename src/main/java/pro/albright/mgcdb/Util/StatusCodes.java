@@ -30,4 +30,7 @@ public class StatusCodes {
   /* OpenID issues */
   // General OpenID error
   public static final int GENERAL_OPENID_ERROR = 40;
+
+  // Escaping error
+  public static final int GENERAL_ESCAPING_ERROR = 50;
 }

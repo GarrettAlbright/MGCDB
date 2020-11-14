@@ -1,4 +1,4 @@
-<h2>Welcome, $userSteamNickname!</h2>
+<h2>Welcome, $esc.html($userSteamNickname)!</h2>
 <p>
   We&rsquo;ve logged you in.
 </p>

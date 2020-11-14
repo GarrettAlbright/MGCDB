@@ -3,6 +3,7 @@ package pro.albright.mgcdb.Controllers;
 import org.apache.velocity.app.VelocityEngine;
 import pro.albright.mgcdb.Model.User;
 import pro.albright.mgcdb.Util.Config;
+import pro.albright.mgcdb.Util.Escape;
 import spark.ModelAndView;
 import spark.Request;
 import spark.template.velocity.VelocityTemplateEngine;
@@ -40,6 +41,8 @@ public class Controller {
     model.put("baseUrl", Config.get("url"));
     model.put("linkBase", Config.get("link_base"));
     model.put("template", template);
+
+    model.put("esc", Escape.class);
 
     return getTemplateEngine().render(new ModelAndView(model, "skeleton.vm"));
   }

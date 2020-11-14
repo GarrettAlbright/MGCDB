@@ -1,6 +1,6 @@
 #if ($voteSuccessful)
 <aside class="notification">
-  <p>Your vote was recieved and stored. Thank you for your contribution!</p>
+  <p>Your vote was received and stored. Thank you for your contribution!</p>
 </aside>
 #end
 <table>
@@ -19,7 +19,7 @@
         <td>
           <img src="https://cdn.cloudflare.steamstatic.com/steam/apps/$game.SteamId/capsule_184x69.jpg" width="92" height="35" alt="Game capsule banner">
         </td>
-        <td>$game.Title</td>
+        <td>$esc.html($game.Title)</td>
         <td>$game.SteamReleaseDate</td>
         <td>#if ($game.Mac == "NO") No #elseif ($game.Mac == "YES") Yes #else ? #end</td>
         <td>#if ($game.SixtyFour == "NO") No #elseif ($game.SixtyFour == "YES") Yes #else ? #end</td>
