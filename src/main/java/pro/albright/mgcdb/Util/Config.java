@@ -39,7 +39,7 @@ public class Config {
     List<String> settingsPaths = new ArrayList<>();
 
     // Check in /etc first
-    settingsPaths.add("/etc/mcgdb/conf.toml");
+    settingsPaths.add("/etc/mgcdb/conf.toml");
     // Then ~/.config/mcgdb_conf.toml
     settingsPaths.add(System.getProperty("user.home") + "/.config/mgcdb_conf.toml");
 
