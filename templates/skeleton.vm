@@ -8,12 +8,12 @@
   <body>
     <aside class="auth-box">
       #if($authenticated)
-        Logged in as <img src="$esc.url($userSteamAvatar)" alt="Steam Avatar" class="steam-avatar" width="15" height="15"> $esc.html($userSteamNickname) - <a href="$linkBase/user/log-out" title="Log out of MGCDB">Log out</a>
+        <img src="$esc.url($userSteamAvatar)" alt="Steam Avatar" class="steam-avatar" width="15" height="15"> $esc.html($userSteamNickname) - <a href="$baseUrl/user" title="View and give feedback on your games">Your games</a> - <a href="$linkBase/user/log-out" title="Log out of MGCDB">Log out</a>
       #else
         <a href="$baseUrl/auth" title="Log in to MGCDB with Steam"><img src="$linkBase/static/img/sits_small.png" width="154" height="23" alt="Sign In Through Steam icon"></a>
       #end
     </aside>
-  	<h1>MGCDB</h1>
+  	<h1><a href="$baseUrl/" title="Back to Home">MGCDB</a></h1>
     #parse($template)
   </body>
 </html>
