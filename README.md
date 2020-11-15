@@ -34,16 +34,16 @@ The web daemon will run on port 4567 by default (this can be changed in the conf
 
 ```nginx
 server {
-	listen 80;
-	server_name mgcdb.test;
+  listen 80;
+  server_name mgcdb.test;
 
-	location /static/ {
-		alias /path/to/mgcdb/static/;
-	}
+  location /static/ {
+    alias /path/to/mgcdb/static/;
+  }
 
-	location / {
-		proxy_pass http://localhost:4567;
-	}
+  location / {
+    proxy_pass http://localhost:4567;
+  }
 }
 ```
 
@@ -67,19 +67,26 @@ Updates games with data from the Steam database. Note that the `newgames` task o
 
 MGCDB will automatically select which games to find updates for based on which games are new and haven't been updated yet (eg, they were just inserted with the `newgames` task), followed by those that have gone the longest since their last update. Games which have been updated in the last 24 hours will never be included.
 
-## Step-by-step operation
+## Step-by-step installation & operation
 
 1. Ensure you have Java 11 or newer and Maven installed on your system via your package/port manager of choice.
-2. Clone the project.
-3. `cd` into project directory.
+2. Clone this Git repository and `cd` into the directory.
 4. Copy and edit the configuration file (see "Configuration" above).
 6. Build a JAR: `mvn clean package assembly:single`. The JAR will be in the `target` directory. Optionally move it to a more convenient spot.
 7. Initialize the database: `java -jar path/to/mgcdb.jar initdb`
+    1. If you are also using OpenBSD and this fails with a dumped error trace that includes "Caused by: java.lang.Exception: No native library found for os.name=OpenBSD, os.arch=x86_64, paths=[/usr/lib:/usr/local/lib]", do the following (this procedure may work with other OSes as well; YMMV):
+    1. Ensure you've installed the `comp` set during installation. If you can't recall if you did or not, then you probably did. If you know that you didn't, or you get some messages later about tools like `gcc` being missing, you can install sets post-installation using [this procedure](https://www.cyberciti.biz/faq/openbsd-install-sets-after-install/).
+    2. Install the `gmake`, `bash`, and `unzip` packages.
+    3. In `/tmp` or some other convenient place, clone the [SQLite JDBC driver](https://github.com/xerial/sqlite-jdbc) repository (`git@github.com:xerial/sqlite-jdbc.git`) and `cd` into it.
+    4. Run `gmake` (note: not `make` as the makefile is not compatible with OpenBSD's standard `make`). The build process will eventually error out with some nonsense having to do with Docker, but that's fine - it got far enough.
+    5. Copy the file at `target/sqlite-[some version number]-OpenBSD-x86_64/libsqlitejdbc.so` into `/usr/local/lib`.
+    6. Optionally uninstall the packages and repo installed/cloned earlier - neither are needed further.
+    7. Try the database initialization command again.
 8. Fetch some games: `java -jar path/to/mgcdb.jar newgames`. Note that this will not fetch every game currently on Steam, but will give you a few to experiment with.
 9. Fetch details for those games: `java -jar path/to/mgcdb.jar updategames`
 10. Start the web daemon: `java -jar path/to/mgcdb.jar` (no further parameters). Test by accessing [http://localhost:4567](http://localhost:4567) in your browser of choice (adjust the port number if you set a custom port number in your configuration file).
 11. Set up your web server to reverse proxy the web daemon and serve MGCDB's static files (see "Web daemon" above).
-12. Configure a cron job task to run the `newgames` and `updategames` tasks periodically (preferably in that order).
+12. Configure a cron job task to run the `newgames` and `updategames` tasks periodically (preferably in that order). See the "Tasks" section above for more information.
 
 
 ## Legal nonsense
@@ -91,4 +98,4 @@ All game information, including titles, descriptions, and images, should be cons
 MGCDB is licensed under the BSD 2-clause license. Various libraries used by MGCDB (see
 pom.xml) will have their own license terms but all are FOSS-licensed.
 
-Special thanks to the members of the ##java channel on Freenode for help throughout my Java learning experience.
+Special thanks to the members of the ##java and #sqlite channels on Freenode for help throughout this learning experience.
