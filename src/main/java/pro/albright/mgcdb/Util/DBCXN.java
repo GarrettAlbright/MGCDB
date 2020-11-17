@@ -41,6 +41,7 @@ public class DBCXN {
     }
     catch (SQLException e) {
       System.err.println("Error when opening database file at " + path + ": " + e.getMessage());
+      e.printStackTrace();
       System.exit(StatusCodes.NO_DB_FILE);
     }
   }
