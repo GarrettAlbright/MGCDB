@@ -182,7 +182,7 @@ public class UserC extends Controller {
       page = "1";
     }
 
-    res.redirect("/user/games/" + page + "?voteSuccessful=1", HttpStatus.SC_SEE_OTHER);
+    res.redirect(Config.get("url") + "/user/games/" + page + "?voteSuccessful=1", HttpStatus.SC_SEE_OTHER);
     return null;
   }
 
@@ -196,7 +196,7 @@ public class UserC extends Controller {
   public static String logOut(Request req, Response res) {
     Session session = req.session(false);
     session.invalidate();
-    res.redirect("/?loggedOut=1", HttpStatus.SC_TEMPORARY_REDIRECT);
+    res.redirect(Config.get("url") + "/?loggedOut=1", HttpStatus.SC_TEMPORARY_REDIRECT);
     return("");
   }
 
@@ -224,7 +224,7 @@ public class UserC extends Controller {
    if (user != null) {
      // The user is already authenticated. Don't try to authenticate them again.
      // Redirect to the user page.
-     res.redirect("/user?alreadyAuthenticated=1", HttpStatus.SC_TEMPORARY_REDIRECT);
+     res.redirect(Config.get("url") + "/user?alreadyAuthenticated=1", HttpStatus.SC_TEMPORARY_REDIRECT);
      halt();
    }
   }
@@ -242,7 +242,7 @@ public class UserC extends Controller {
   public static void ensureAuthenticated(Request req, Response res) {
     User user = req.attribute("user");
     if (user == null) {
-      res.redirect("/auth", HttpStatus.SC_TEMPORARY_REDIRECT);
+      res.redirect(Config.get("url") + "/auth", HttpStatus.SC_TEMPORARY_REDIRECT);
       halt();
     }
   }
