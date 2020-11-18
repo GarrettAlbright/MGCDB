@@ -9,10 +9,7 @@ import pro.albright.mgcdb.Util.SteamCxn;
 import java.io.Serializable;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class User implements Serializable {
@@ -36,6 +33,11 @@ public class User implements Serializable {
    * The hash of the user's avatar image in Steam.
    */
   private String avatarHash;
+
+  /**
+   * The date this user's game ownership data was last synchronized.
+   */
+  private Date lastGameSynch;
 
   public int getUserId() {
     return userId;
@@ -67,6 +69,14 @@ public class User implements Serializable {
 
   public void setAvatarHash(String avatarHash) {
     this.avatarHash = avatarHash;
+  }
+
+  public Date getLastGameSynch() {
+    return lastGameSynch;
+  }
+
+  public void setLastGameSynch(Date lastGameSynch) {
+    this.lastGameSynch = lastGameSynch;
   }
 
   /**
@@ -182,6 +192,7 @@ public class User implements Serializable {
       user.setSteamId(rs.getLong("steam_user_id"));
       user.setNickname(rs.getString("nickname"));
       user.setAvatarHash(rs.getString("avatar_hash"));
+      user.setLastGameSynch(DBCXN.parseTimestamp(rs.getString("last_game_synch")));
       return user;
     }
     catch (SQLException throwables) {
@@ -243,6 +254,11 @@ public class User implements Serializable {
         Ownership.delete(userId, dbOwnedGameId);
       }
     }
+
+    String query = "UPDATE users SET last_game_synch = CURRENT_TIMESTAMP where user_id = ?";
+    Map<Integer, Object> params = new HashMap<>();
+    params.put(1, userId);
+    DBCXN.doUpdateQuery(query, params);
   }
 
   /**
@@ -298,5 +314,27 @@ public class User implements Serializable {
       params.put(3, avatarHash);
       DBCXN.doUpdateQuery(query, params);
     }
+  }
+
+  /**
+   * Find all users due for an ownership synch (it's been at least 1 day since
+   * their last one).
+   * @return An array of Users.
+   */
+  public static User[] getUsersNeedingOwnershipUpdate() {
+    String query = "SELECT * FROM users WHERE last_game_synch <= datetime('now', '-1 day')";
+    ResultSet rs = DBCXN.doSelectQuery(query, null);
+    List<User> users = new ArrayList<>();
+    try {
+      while (rs.next()) {
+        users.add(createFromResultSet(rs));
+      }
+    }
+    catch (SQLException throwables) {
+      throwables.printStackTrace();
+      System.exit(StatusCodes.GENERAL_SQL_ERROR);
+    }
+
+    return users.toArray(new User[users.size()]);
   }
 }

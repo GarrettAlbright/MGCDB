@@ -62,7 +62,7 @@ public class Tasks {
         updateDb(updateIndex);
         break;
       case "updateownership":
-        updateOwnership(1);
+        updateOwnership();
         break;
       default:
         System.err.printf("Handler for task %s not found.%n", task);
@@ -152,20 +152,8 @@ public class Tasks {
         Connection cxn = DBCXN.getCxn();
         try {
           Statement stmt = cxn.createStatement();
-          stmt.addBatch("ALTER TABLE users RENAME TO tempusers");
-
-          Map<String, String> commands = getCurrentCreateQueries();
-          stmt.addBatch(commands.get("createUsersQuery"));
-          stmt.addBatch(commands.get("createUsersTriggerQuery"));
-
-          stmt.addBatch("INSERT INTO users (user_id, steam_user_id, " +
-            "nickname, avatar_hash, last_auth, created, updated) " +
-            "SELECT * FROM tempusers;");
-          stmt.addBatch("DROP TABLE tempusers");
-
-          stmt.executeBatch();
+          stmt.execute("ALTER TABLE users ADD COLUMN last_game_synch TEXT NOT NULL DEFAULT '0000-01-01 00:00:00'");
           cxn.commit();
-
           break;
         }
         catch (SQLException throwables) {
@@ -181,12 +169,14 @@ public class Tasks {
   }
 
   /**
-   *
-   * @param userId
+   * Update owned games for users which have not had that updated recently.
    */
-  public static void updateOwnership(int userId) {
-    User me = User.getById(1);
-    me.updateOwnedGames();
+  public static void updateOwnership() {
+    User[] users = User.getUsersNeedingOwnershipUpdate();
+    for (User user : users) {
+      System.out.printf("Updating ownership for user %d%n", user.getUserId());
+      user.updateOwnedGames();
+    }
   }
 
   /**

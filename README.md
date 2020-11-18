@@ -67,6 +67,10 @@ Updates games with data from the Steam database. Note that the `newgames` task o
 
 MGCDB will automatically select which games to find updates for based on which games are new and haven't been updated yet (eg, they were just inserted with the `newgames` task), followed by those that have gone the longest since their last update. Games which have been updated in the last 24 hours will never be included.
 
+### `updateownership`
+
+Resynchronizes the game ownership records for a user; in other words, adds new games to the list of games that they own. Note that only users who have not had their ownership resynchronized in over 1 day (24 hours, give or take DST hijinks) will be updated.
+
 ## Step-by-step installation & operation
 
 1. Ensure you have Java 11 or newer and Maven installed on your system via your package/port manager of choice.
