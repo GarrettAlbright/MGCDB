@@ -24,13 +24,9 @@ Configuration is managed via a simple [TOML](https://github.com/toml-lang/toml) 
 
 To configure MGCDB, copy the sample `conf.toml` to the desired spot and edit it. All possible configuration directives are listed in the file and documented with comments.
 
-TODO: What about Windows users?
-
-TODO: Specify configuration file location via CLI?
-
 ## Web daemon
 
-The web daemon will run on port 4567 by default (this can be changed in the config file (TODO: actually implement that)). It's intended that another web daemon reverse proxy this and also serve static files from the `static` directory because the web daemon will not attempt to serve those. Example Nginx configuration is shown below (possibly desirable directives such as `error_log` omitted for brevity):
+The web daemon will run on port 4567 by default. It's intended that another web daemon reverse proxy this and also serve static files from the `static` directory because the web daemon will not attempt to serve those. Example Nginx configuration is shown below (possibly desirable directives such as `error_log` omitted for brevity):
 
 ```nginx
 server {
