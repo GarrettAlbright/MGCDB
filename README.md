@@ -8,6 +8,10 @@ A database of games on the Steam storefront which can be played on macOS compute
 
 Web application built with Java 11 and Maven. SQLite 3 is used for the database.
 
+## Live site
+
+A live version of MGCDB can be found at https://albright.pro/mgcdb currently.
+
 ## Concepts
 
 The same project will run the web application as a persistent daemon, as well as run "tasks" and quit. Tasks are things like fetching new games, updating existing games, etc, and intended to be run as cron jobs.
