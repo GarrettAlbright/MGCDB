@@ -8,15 +8,18 @@ import java.io.File;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.Map;
 
-public class DBCXN {
+public class DBCxn {
 
   private static Connection cxn;
   private static String path;
   private static Connection readOnlyCxn;
+
+  public DBCxn(String path) {
+    this.path = path.replaceFirst("^~", System.getProperty("user.home"));
+  }
 
   /**
    * Init the writable connection.
@@ -25,8 +28,7 @@ public class DBCXN {
    * this allows for other processes (such as the `sqlite` CLI tool to access
    * the database without it being locked.
    */
-  protected static void init() {
-    ensurePath();
+  protected void init() {
     try {
       SQLiteConfig config = new SQLiteConfig();
       // Setting this journal mode allows us to have both a writable and a
@@ -52,16 +54,15 @@ public class DBCXN {
    * Using this connection for read-only queries avoids the database being
    * locked.
    */
-  protected static void initReadOnlyCxn() {
-    ensurePath();
+  protected void initReadOnlyCxn() {
     try {
       if (readOnlyCxn != null && !readOnlyCxn.isClosed()) {
         readOnlyCxn.close();
       }
-      SQLiteConfig config = new SQLiteConfig();
-      config.setReadOnly(true);
-      config.setJournalMode(SQLiteConfig.JournalMode.WAL);
-      readOnlyCxn = config.createConnection("jdbc:sqlite:" + path);
+      SQLiteConfig sqLiteConfig = new SQLiteConfig();
+      sqLiteConfig.setReadOnly(true);
+      sqLiteConfig.setJournalMode(SQLiteConfig.JournalMode.WAL);
+      readOnlyCxn = sqLiteConfig.createConnection("jdbc:sqlite:" + path);
     }
     catch (SQLException throwables) {
       throwables.printStackTrace();
@@ -74,7 +75,7 @@ public class DBCXN {
    *
    * @return The database connection.
    */
-  protected static Connection getCxn() {
+  protected Connection getCxn() {
     try {
       if (cxn == null || !cxn.isValid(5)) {
         init();
@@ -92,7 +93,7 @@ public class DBCXN {
    *
    * @return The database connection.
    */
-  protected static Connection getReadOnlyCxn() {
+  protected Connection getReadOnlyCxn() {
     try {
       if (readOnlyCxn == null || !readOnlyCxn.isValid(1)) {
         initReadOnlyCxn();
@@ -112,8 +113,7 @@ public class DBCXN {
    * @param deleteIfExists true if the database file should be deleted.
    * @throws SQLException If a SQL-related error occurred.
    */
-  public static void createIfNotExists(boolean deleteIfExists) throws SQLException {
-    ensurePath();
+  public void createIfNotExists(boolean deleteIfExists) throws SQLException {
     File dbFile = new File(path);
     if (dbFile.exists() && deleteIfExists) {
       if (cxn != null && !cxn.isClosed()) {
@@ -134,18 +134,7 @@ public class DBCXN {
       }
     }
   }
-
-  /**
-   * Ensure the path field is set.
-   */
-  public static void ensurePath() {
-    if (path == null) {
-      // https://stackoverflow.com/a/7163455/11023
-      String untildedPath = Config.get("db_location");
-      path = untildedPath.replaceFirst("^~", System.getProperty("user.home"));
-    }
-  }
-
+  
   /**
    * Parse a timestamp.
    *
@@ -155,7 +144,7 @@ public class DBCXN {
    * @param timestamp The timestamp.
    * @return A Date object.
    */
-  public static Date parseTimestamp(String timestamp) {
+  public Date parseTimestamp(String timestamp) {
     DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     Date date = null;
     try {
@@ -174,7 +163,7 @@ public class DBCXN {
    * @param parameters Parameters. See prepareStatement() for more.
    * @return The ID of the inserted row.
    */
-  public static int doInsertQuery(String query, Map<Integer, Object> parameters) {
+  public int doInsertQuery(String query, Map<Integer, Object> parameters) {
     return doInsertOrUpdateQuery(query, parameters, true);
   }
 
@@ -184,7 +173,7 @@ public class DBCXN {
    * @param query The query.
    * @param parameters Parameters. See prepareStatement() for more.
    */
-  public static void doUpdateQuery(String query, Map<Integer, Object> parameters) {
+  public void doUpdateQuery(String query, Map<Integer, Object> parameters) {
     doInsertOrUpdateQuery(query, parameters, false);
   }
 
@@ -195,7 +184,7 @@ public class DBCXN {
    * @param parameters Parameters. See prepareStatement() for more.
    * @return The resulting ResultSet.
    */
-  public static ResultSet doSelectQuery(String query, Map<Integer, Object> parameters) {
+  public ResultSet doSelectQuery(String query, Map<Integer, Object> parameters) {
     Connection roCxn = getReadOnlyCxn();
     PreparedStatement stmt = prepareStatement(query, parameters, roCxn);
     ResultSet rs = null;
@@ -217,7 +206,7 @@ public class DBCXN {
    * @param parameters Parameters. See prepareStatement() for more.
    * @return The resulting integer.
    */
-  public static int getSingleIntResult(String query, Map<Integer, Object> parameters) {
+  public int getSingleIntResult(String query, Map<Integer, Object> parameters) {
     ResultSet rs = doSelectQuery(query, parameters);
     int count = 0;
     try {
@@ -241,7 +230,7 @@ public class DBCXN {
    *                           retrieved after the query and returned.
    * @return The ID of the inserted row if requested; 0 otherwise.
    */
-  protected static int doInsertOrUpdateQuery(String query, Map<Integer, Object> parameters, boolean returnGeneratedKey) {
+  protected int doInsertOrUpdateQuery(String query, Map<Integer, Object> parameters, boolean returnGeneratedKey) {
     Connection cxn = getCxn();
     PreparedStatement stmt = prepareStatement(query, parameters, cxn);
     ResultSet rs = null;
@@ -281,7 +270,7 @@ public class DBCXN {
    * @param cxn The connection to prepare the query against.
    * @return A PreparedStatement generated from the query and parameters.
    */
-  protected static PreparedStatement prepareStatement(String query, Map<Integer, Object> parameters, Connection cxn) {
+  protected PreparedStatement prepareStatement(String query, Map<Integer, Object> parameters, Connection cxn) {
     PreparedStatement stmt = null;
     try {
       if (query.toLowerCase().startsWith("insert ")) {

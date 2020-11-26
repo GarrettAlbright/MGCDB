@@ -1,7 +1,7 @@
 package pro.albright.mgcdb.Model;
 
 import pro.albright.mgcdb.SteamAPIModel.PlayerSummary;
-import pro.albright.mgcdb.Util.DBCXN;
+import pro.albright.mgcdb.Util.DBCxn;
 import pro.albright.mgcdb.Util.PagedQueryResult;
 import pro.albright.mgcdb.Util.StatusCodes;
 import pro.albright.mgcdb.Util.SteamCxn;
@@ -12,7 +12,7 @@ import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class User implements Serializable {
+public class User extends Model implements Serializable {
 
   /**
    * The user ID in the local database.
@@ -96,8 +96,7 @@ public class User implements Serializable {
     if (user == null && createIfNotFound) {
       // Create a new user object.
       // First, try to get details on the user from Steam.
-      SteamCxn scxn = new SteamCxn();
-      PlayerSummary ps = scxn.getUserInfo(steamId);
+      PlayerSummary ps = steamCxn.getUserInfo(steamId);
       if (ps == null) {
         // Couldn't get user details from Steam. Give up.
         return null;
@@ -143,7 +142,7 @@ public class User implements Serializable {
     User user = null;
     Map<Integer, Object> params = new HashMap<>();
     params.put(1, steamId);
-    ResultSet rs = DBCXN.doSelectQuery("SELECT * FROM users WHERE steam_user_id = ?", params);
+    ResultSet rs = dbCxn.doSelectQuery("SELECT * FROM users WHERE steam_user_id = ?", params);
     try {
       if (rs.next()) {
         user = User.createFromResultSet(rs);
@@ -166,7 +165,7 @@ public class User implements Serializable {
     User user = null;
     Map<Integer, Object> params = new HashMap<>();
     params.put(1, userId);
-    ResultSet rs = DBCXN.doSelectQuery("SELECT * FROM users WHERE user_id = ?", params);
+    ResultSet rs = dbCxn.doSelectQuery("SELECT * FROM users WHERE user_id = ?", params);
     try {
       if (rs.next()) {
         user = User.createFromResultSet(rs);
@@ -192,7 +191,7 @@ public class User implements Serializable {
       user.setSteamId(rs.getLong("steam_user_id"));
       user.setNickname(rs.getString("nickname"));
       user.setAvatarHash(rs.getString("avatar_hash"));
-      user.setLastGameSynch(DBCXN.parseTimestamp(rs.getString("last_game_synch")));
+      user.setLastGameSynch(dbCxn.parseTimestamp(rs.getString("last_game_synch")));
       return user;
     }
     catch (SQLException throwables) {
@@ -222,7 +221,7 @@ public class User implements Serializable {
   public void bumpAuthDate() {
     Map<Integer, Object> params = new HashMap<>();
     params.put(1, userId);
-    DBCXN.doUpdateQuery("UPDATE users SET last_auth = CURRENT_TIMESTAMP where user_id = ?", params);
+    dbCxn.doUpdateQuery("UPDATE users SET last_auth = CURRENT_TIMESTAMP where user_id = ?", params);
   }
 
   /**
@@ -233,7 +232,6 @@ public class User implements Serializable {
    * several hundred games.
    */
   public void updateOwnedGames() {
-    SteamCxn steamCxn = new SteamCxn();
     int[] steamGameIds = steamCxn.getOwnedGamesInSteam(steamId);
     // Convert array to list so we can use .contains because apparently Java
     // doesn't have something similar for regular arrays… oof
@@ -258,7 +256,7 @@ public class User implements Serializable {
     String query = "UPDATE users SET last_game_synch = CURRENT_TIMESTAMP where user_id = ?";
     Map<Integer, Object> params = new HashMap<>();
     params.put(1, userId);
-    DBCXN.doUpdateQuery(query, params);
+    dbCxn.doUpdateQuery(query, params);
   }
 
   /**
@@ -281,11 +279,11 @@ public class User implements Serializable {
       "WHERE o.user_id = ?";
     Map<Integer, Object> params = new HashMap<>();
     params.put(1, userId);
-    int count = DBCXN.getSingleIntResult(countQuery, params);
+    int count = dbCxn.getSingleIntResult(countQuery, params);
 
     params.put(2, Game.perPage);
     params.put(3, page * Game.perPage);
-    ResultSet rs = DBCXN.doSelectQuery(selectQuery, params);
+    ResultSet rs = dbCxn.doSelectQuery(selectQuery, params);
     Game[] games = Game.createFromResultSet(rs);
     return new PagedQueryResult<>(games, count, Game.perPage, page);
   }
@@ -303,7 +301,7 @@ public class User implements Serializable {
       params.put(1, steamId);
       params.put(2, nickname);
       params.put(3, avatarHash);
-      userId = DBCXN.doInsertQuery(query, params);
+      userId = dbCxn.doInsertQuery(query, params);
     }
     else {
       // This is an existing user that we're updating.
@@ -312,7 +310,7 @@ public class User implements Serializable {
       params.put(1, nickname);
       params.put(2, userId);
       params.put(3, avatarHash);
-      DBCXN.doUpdateQuery(query, params);
+      dbCxn.doUpdateQuery(query, params);
     }
   }
 
@@ -323,7 +321,7 @@ public class User implements Serializable {
    */
   public static User[] getUsersNeedingOwnershipUpdate() {
     String query = "SELECT * FROM users WHERE last_game_synch <= datetime('now', '-1 day')";
-    ResultSet rs = DBCXN.doSelectQuery(query, null);
+    ResultSet rs = dbCxn.doSelectQuery(query, null);
     List<User> users = new ArrayList<>();
     try {
       while (rs.next()) {

@@ -1,8 +1,8 @@
 package pro.albright.mgcdb.Model;
 
-import pro.albright.mgcdb.Util.DBCXN;
-import pro.albright.mgcdb.Util.StatusCodes;
+import pro.albright.mgcdb.Util.DBCxn;
 
+import java.io.Serializable;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -11,7 +11,7 @@ import java.util.Map;
 /**
  * A class representing a vote on Catalina compatibility.
  */
-public class Vote {
+public class Vote extends Model implements Serializable {
 
   /**
    * The ID of the vote.
@@ -66,7 +66,7 @@ public class Vote {
     String query = "SELECT * FROM votes WHERE ownership_id = ?";
     Map<Integer, Object> params = new HashMap<>();
     params.put(1, ownershipId);
-    ResultSet rs = DBCXN.doSelectQuery(query, params);
+    ResultSet rs = dbCxn.doSelectQuery(query, params);
     return Vote.createFromResultSet(rs);
   }
 
@@ -99,7 +99,7 @@ public class Vote {
     String query = "DELETE FROM votes WHERE vote_id = ?";
     Map<Integer, Object> params = new HashMap<>();
     params.put(1, voteId);
-    DBCXN.doUpdateQuery(query, params);
+    dbCxn.doUpdateQuery(query, params);
   }
 
   /**
@@ -113,7 +113,7 @@ public class Vote {
       query = "INSERT INTO votes (ownership_id, vote) VALUES (?, ?)";
       params.put(1, ownershipId);
       params.put(2, vote ? 1 : 0);
-      voteId = DBCXN.doInsertQuery(query, params);
+      voteId = dbCxn.doInsertQuery(query, params);
     }
     else {
       // I don't see the case in which the ownership ID of an existing vote
@@ -121,7 +121,7 @@ public class Vote {
       query = "UPDATE votes SET vote = ? WHERE vote_id = ?";
       params.put(1, vote ? 1 : 0);
       params.put(2, voteId);
-      DBCXN.doUpdateQuery(query, params);
+      dbCxn.doUpdateQuery(query, params);
     }
   }
 }

@@ -4,7 +4,11 @@ import java.sql.SQLException;
 
 import pro.albright.mgcdb.Controllers.GameC;
 import pro.albright.mgcdb.Controllers.UserC;
+import pro.albright.mgcdb.Model.Model;
 import pro.albright.mgcdb.Model.User;
+import pro.albright.mgcdb.Util.Config;
+import pro.albright.mgcdb.Util.DBCxn;
+import pro.albright.mgcdb.Util.SteamCxn;
 import pro.albright.mgcdb.Util.Tasks;
 import spark.Session;
 
@@ -15,6 +19,14 @@ import static spark.Spark.*;
  */
 public class App {
   public static void main( String[] args ) throws SQLException {
+    // Initialize dependencies
+    Config config = new Config();
+    SteamCxn steamCxn = new SteamCxn(config.get("steam_key"));
+    DBCxn dbCxn = new DBCxn(config.get("db_location"));
+
+    Model.setDbCxn(dbCxn);
+    Model.setSteamCxn(steamCxn);
+
     if (args.length == 0) {
       // Start server
       System.out.println("Starting server.");
@@ -40,30 +52,34 @@ public class App {
         }
       });
 
-      get("/", GameC::front);
-      get("/games", GameC::gamesByRelease);
-      get("/games/:filter", GameC::gamesByRelease);
-      get("/games/:filter/:page", GameC::gamesByRelease);
+      // Initialize controllers
+      GameC gameC = new GameC(config);
+      UserC userC = new UserC(config);
+
+      get("/", gameC::front);
+      get("/games", gameC::gamesByRelease);
+      get("/games/:filter", gameC::gamesByRelease);
+      get("/games/:filter/:page", gameC::gamesByRelease);
 
       // There doesn't seem to be a way to define a handler for just "/foo"
       // inside a path section for "/foo", and the "before" handler for "/*"
       // inside the path section for "/foo" won't fire the handler for just
       // "/foo". So this ugliness.
-      before("/auth", UserC::ensureNotAuthenticated);
-      get("/auth", UserC::authenticate);
+      before("/auth", userC::ensureNotAuthenticated);
+      get("/auth", userC::authenticate);
       path("/auth", () -> {
-        before("/*", UserC::ensureNotAuthenticated);
-        get("/authenticated", UserC::authenticated);
+        before("/*", userC::ensureNotAuthenticated);
+        get("/authenticated", userC::authenticated);
       });
 
-      before("/user", UserC::ensureAuthenticated);
-      get("/user", UserC::userPage);
+      before("/user", userC::ensureAuthenticated);
+      get("/user", userC::userPage);
       path("/user", () -> {
-        before("/*", UserC::ensureAuthenticated);
-        get("/log-out", UserC::logOut);
-        get("/games", UserC::userGames);
-        get("/games/:page", UserC::userGames);
-        get("/vote/:ownership/:vote", UserC::takeVote);
+        before("/*", userC::ensureAuthenticated);
+        get("/log-out", userC::logOut);
+        get("/games", userC::userGames);
+        get("/games/:page", userC::userGames);
+        get("/vote/:ownership/:vote", userC::takeVote);
       });
     }
     else {
@@ -73,7 +89,8 @@ public class App {
       for (int argIdx = 1; argIdx < args.length; argIdx++) {
         taskArgs[argIdx - 1] = args[argIdx];
       }
-      Tasks.invoke(task, taskArgs);
+      Tasks tasks = new Tasks(config, new DBCxn(config.get("db_location")));
+      tasks.invoke(task, taskArgs);
     }
   }
 }

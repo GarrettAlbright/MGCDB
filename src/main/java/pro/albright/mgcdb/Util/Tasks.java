@@ -11,6 +11,14 @@ import java.util.Map;
 
 public class Tasks {
 
+  private Config config;
+  private DBCxn dbCxn;
+
+  public Tasks(Config config, DBCxn dbCxn) {
+    this.config = config;
+    this.dbCxn = dbCxn;
+  }
+
   /**
    * Invoke a task.
    *
@@ -21,7 +29,7 @@ public class Tasks {
    * @param params Parameters which the task may need, from the CLI invocation.
    * @throws SQLException An SQL-related error occurred.
    */
-  public static void invoke(String task, String[] params) throws SQLException {
+  public void invoke(String task, String[] params) throws SQLException {
     switch (task) {
       case "initdb":
         // Initialize the database
@@ -75,7 +83,7 @@ public class Tasks {
    *
    * @throws SQLException An SQL-related error occurred.
    */
-  private static void initDb(boolean deleteIfExists) throws SQLException {
+  private void initDb(boolean deleteIfExists) throws SQLException {
     if (deleteIfExists) {
       System.out.println("Any existing database will be deleted. Hope you meant to do that.");
     }
@@ -83,11 +91,11 @@ public class Tasks {
       System.out.println("Existing database (if any) will be used; non-existing tables will be created.");
       System.out.println("Pass `delete` parameter to delete any existing database.");
     }
-    DBCXN.createIfNotExists(deleteIfExists);
-    Connection cxn = DBCXN.getCxn();
+    dbCxn.createIfNotExists(deleteIfExists);
+    Connection cxn = dbCxn.getCxn();
     Statement stmt = cxn.createStatement();
 
-    Map<String, String> commands =getCurrentCreateQueries();
+    Map<String, String> commands = getCurrentCreateQueries();
 
     stmt.addBatch(commands.get("createGamesQuery"));
     stmt.addBatch(commands.get("createGamesTriggerQuery"));
@@ -137,7 +145,7 @@ public class Tasks {
    * Update data from Steam for a single game.
    * @param game The Game to update.
    */
-  public static void updateGame(Game game) {
+  public void updateGame(Game game) {
     System.out.printf("Updating game %s (Our ID: %d, Steam ID: %d)%n", game.getTitle(), game.getGameId(), game.getSteamId());
     game.updateFromSteam();
   }
@@ -146,10 +154,10 @@ public class Tasks {
    * Update the database schema.
    * @param updateIdx The ID of the update to run.
    */
-  public static void updateDb(int updateIdx) {
+  public void updateDb(int updateIdx) {
     switch (updateIdx) {
       case 1:
-        Connection cxn = DBCXN.getCxn();
+        Connection cxn = dbCxn.getCxn();
         try {
           Statement stmt = cxn.createStatement();
           stmt.execute("ALTER TABLE users ADD COLUMN last_game_synch TEXT NOT NULL DEFAULT '0000-01-01 00:00:00'");

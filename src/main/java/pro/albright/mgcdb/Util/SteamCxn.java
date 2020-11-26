@@ -29,8 +29,8 @@ public class SteamCxn {
   // Identify as a Mac so that Steam tells us if a game is Catalina-compatible
   private final String userAgentString = "MGCDB/0.1 (Macintosh; +https://github.com/GarrettAlbright/MGCDB)";
 
-  public SteamCxn() {
-    steamKey = Config.get("steam_key");
+  public SteamCxn(String steamKey) {
+    this.steamKey = steamKey;
   }
 
   /**

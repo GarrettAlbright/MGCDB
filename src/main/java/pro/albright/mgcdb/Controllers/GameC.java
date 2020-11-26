@@ -1,7 +1,10 @@
 package pro.albright.mgcdb.Controllers;
 
 import pro.albright.mgcdb.Model.Game;
+import pro.albright.mgcdb.Util.Config;
+import pro.albright.mgcdb.Util.DBCxn;
 import pro.albright.mgcdb.Util.PagedQueryResult;
+import pro.albright.mgcdb.Util.SteamCxn;
 import spark.Request;
 import spark.Response;
 
@@ -24,7 +27,16 @@ public class GameC extends Controller {
    * should be `["foo bar", "baz"]`. Non-paired double quotes should be ignored,
    * so `foo "bar baz` is still `["foo", "bar", "baz"]`.
    */
-    private static Pattern queryPattern = Pattern.compile("(?:\"(.+?)\"|([^\\s\"]+))");
+    private Pattern queryPattern = Pattern.compile("(?:\"(.+?)\"|([^\\s\"]+))");
+
+  /**
+   * Initialize controller and inject dependencies.
+   *
+   * @param config
+   */
+  public GameC(Config config) {
+    super(config);
+  }
 
   /**
    * Show games by release date.
@@ -32,7 +44,7 @@ public class GameC extends Controller {
    * @param res
    * @return
    */
-  public static String gamesByRelease(Request req, Response res)  {
+  public String gamesByRelease(Request req, Response res)  {
     Map<String, Object> model = getModelForGameList(req);
     model.put("isFrontPage", false);
     return render(req, model, "gamesByRelease.vm");
@@ -45,7 +57,7 @@ public class GameC extends Controller {
    * @param res
    * @return
    */
-  public static String front(Request req, Response res) {
+  public String front(Request req, Response res) {
     Map<String, Object> model = getModelForGameList(req);
     model.put("isFrontPage", true);
     return render(req, model, "gamesByRelease.vm");
@@ -57,7 +69,7 @@ public class GameC extends Controller {
    * @param req
    * @return
    */
-  private static HashMap<String, Object> getModelForGameList(Request req) {
+  private HashMap<String, Object> getModelForGameList(Request req) {
     String filterStr = req.params(":filter");
     // If our filter param is numeric, it's actually a page number for the "all"
     // filter.
@@ -133,6 +145,4 @@ public class GameC extends Controller {
 
     return model;
   }
-
-
 }

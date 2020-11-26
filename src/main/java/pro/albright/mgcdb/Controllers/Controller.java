@@ -17,6 +17,14 @@ import static spark.Spark.notFound;
 
 public class Controller {
   private static VelocityTemplateEngine tple = null;
+  protected Config config;
+
+  /**
+   * Initialize controller and inject dependencies.
+   */
+  public Controller(Config config) {
+    this.config = config;
+  }
 
   /**
    * Render a page.
@@ -24,7 +32,7 @@ public class Controller {
    * Note that a "model" as Spark's template system calls it is not an actual
    * model but just a map of placeholder values.
    */
-  protected static String render(Request req, Map<String, Object> model, String template) {
+  protected String render(Request req, Map<String, Object> model, String template) {
     // Load the user so we can put some user info in the "model."
     User user = (User) req.attribute("user");
 
@@ -38,8 +46,8 @@ public class Controller {
       model.put("authenticated", false);
     }
 
-    model.put("baseUrl", Config.get("url"));
-    model.put("linkBase", Config.get("link_base"));
+    model.put("baseUrl", config.get("url"));
+    model.put("linkBase", config.get("link_base"));
     model.put("template", template);
 
     model.put("esc", Escape.class);
@@ -50,7 +58,7 @@ public class Controller {
   /**
    * Show a 404 page.
    */
-  protected static void fourOhFour() {
+  protected void fourOhFour() {
     Map<String, Object> model = new HashMap<>();
     ModelAndView mav = new ModelAndView(model, "404.vm");
     String output = getTemplateEngine().render(mav);
@@ -63,7 +71,7 @@ public class Controller {
    *
    * @return The VelocityTemplateEngine instance.
    */
-  protected static VelocityTemplateEngine getTemplateEngine() {
+  protected VelocityTemplateEngine getTemplateEngine() {
     if (tple == null) {
       // TODO The path to templates should be changeable via config file
       Path templatePath = Paths.get("templates");

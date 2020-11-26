@@ -1,10 +1,8 @@
 package pro.albright.mgcdb.Model;
 
-import org.apache.commons.lang.StringUtils;
 import pro.albright.mgcdb.SteamAPIModel.GetAppDetailsApp;
-import pro.albright.mgcdb.SteamAPIModel.GetAppDetailsReleaseDate;
 import pro.albright.mgcdb.SteamAPIModel.GetAppListApp;
-import pro.albright.mgcdb.Util.DBCXN;
+import pro.albright.mgcdb.Util.DBCxn;
 import pro.albright.mgcdb.Util.PagedQueryResult;
 import pro.albright.mgcdb.Util.StatusCodes;
 import pro.albright.mgcdb.Util.SteamCxn;
@@ -18,7 +16,7 @@ import java.util.Date;
 /**
  * Bean class to encapsulate a game.
  */
-public class Game implements java.io.Serializable {
+public class Game extends Model implements java.io.Serializable {
 
   /**
    * The number of games to show per page on listings.
@@ -270,7 +268,7 @@ public class Game implements java.io.Serializable {
    * there are no games in the DB currently.
    */
   public static int getNewestGameSteamId() {
-    return DBCXN.getSingleIntResult("SELECT MAX(steam_id) AS max FROM games", null);
+    return dbCxn.getSingleIntResult("SELECT MAX(steam_id) AS max FROM games", null);
   }
 
   /**
@@ -280,7 +278,6 @@ public class Game implements java.io.Serializable {
    * @return Array of Games.
    */
   public static Game[] getNewGamesFromSteam(int limit) {
-    SteamCxn steamCxn = new SteamCxn();
     int lastAppId = Game.getNewestGameSteamId();
     return steamCxn.getNewGames(lastAppId, limit);
  }
@@ -295,7 +292,7 @@ public class Game implements java.io.Serializable {
     String query = "SELECT COUNT(*) AS count FROM games WHERE steam_id = ?";
     Map<Integer, Object> parameters = new HashMap<>();
     parameters.put(1, steamId);
-    return DBCXN.getSingleIntResult(query, parameters) > 0;
+    return dbCxn.getSingleIntResult(query, parameters) > 0;
   }
 
   /**
@@ -337,10 +334,10 @@ public class Game implements java.io.Serializable {
     parameters.put(2, title);
 
     if (gameId == 0) {
-      gameId = DBCXN.doInsertQuery(query, parameters);
+      gameId = dbCxn.doInsertQuery(query, parameters);
     }
     else {
-      DBCXN.doUpdateQuery(query, parameters);
+      dbCxn.doUpdateQuery(query, parameters);
     }
   }
 
@@ -350,8 +347,7 @@ public class Game implements java.io.Serializable {
    * @return True if the game was able to be successfully updated.
    */
   public boolean updateFromSteam() {
-    SteamCxn steam = new SteamCxn();
-    GetAppDetailsApp updatedGame = steam.getUpdatedGameDetails(this);
+    GetAppDetailsApp updatedGame = steamCxn.getUpdatedGameDetails(this);
     if (updatedGame == null) {
       // Getting updated info for this game failed, but we're still going to
       // update this game's "steam_updated" value so we're not constantly
@@ -374,7 +370,7 @@ public class Game implements java.io.Serializable {
     if (mac != null) {
       if (mac) {
         setMac(GamePropStatus.YES);
-        setSixtyFour(steam.getCatalinaStatus(this));
+        setSixtyFour(steamCxn.getCatalinaStatus(this));
       }
       else {
         setMac(GamePropStatus.NO);
@@ -396,7 +392,7 @@ public class Game implements java.io.Serializable {
     Map<Integer, Object> params = new HashMap<>();
     params.put(1, limit);
 
-    ResultSet rs =  DBCXN.doSelectQuery(query, params);
+    ResultSet rs = dbCxn.doSelectQuery(query, params);
 
     return createFromResultSet(rs);
   }
@@ -418,9 +414,9 @@ public class Game implements java.io.Serializable {
         game.setMac(GamePropStatus.fromValue(rs.getInt("mac")));
         game.setSixtyFour(GamePropStatus.fromValue(rs.getInt("sixtyfour")));
         game.setSilicon(GamePropStatus.fromValue(rs.getInt("silicon")));
-        game.setCreated(DBCXN.parseTimestamp(rs.getString("created")));
-        game.setUpdated(DBCXN.parseTimestamp(rs.getString("updated")));
-        game.setSteamUpdated(DBCXN.parseTimestamp(rs.getString("steam_updated")));
+        game.setCreated(dbCxn.parseTimestamp(rs.getString("created")));
+        game.setUpdated(dbCxn.parseTimestamp(rs.getString("updated")));
+        game.setSteamUpdated(dbCxn.parseTimestamp(rs.getString("steam_updated")));
         String steamRelease = rs.getString("steam_release");
         if (!steamRelease.isEmpty()) {
           // The release date can be empty when the data from Steam did not have
@@ -480,7 +476,7 @@ public class Game implements java.io.Serializable {
     for (int steamId : steamIds) {
       params.put(paramIdx++, steamId);
     }
-    ResultSet rs = DBCXN.doSelectQuery(query, params);
+    ResultSet rs = dbCxn.doSelectQuery(query, params);
 
     // Note that the SQLite driver doesn't let us do the cursor back and forth
     // by which we can get the count of rows in a ResultSet ("SQLite only
@@ -514,7 +510,7 @@ public class Game implements java.io.Serializable {
     String query = "SELECT * FROM games WHERE game_id = ?";
     Map<Integer, Object> params = new HashMap<>();
     params.put(1, gameId);
-    ResultSet rs = DBCXN.doSelectQuery(query, params);
+    ResultSet rs = dbCxn.doSelectQuery(query, params);
     Game[] games =  Game.createFromResultSet(rs);
     return games.length > 0 ? games[0] : null;
   }
@@ -568,7 +564,7 @@ public class Game implements java.io.Serializable {
     }
 
     String countQuery = "SELECT COUNT(*) FROM games g WHERE g.steam_release <= CURRENT_TIMESTAMP" + where;
-    int count = DBCXN.getSingleIntResult(countQuery, params);
+    int count = dbCxn.getSingleIntResult(countQuery, params);
 
     String selectQuery = "SELECT g.*, COUNT(v.vote_id) AS vote_count, SUM(v.vote) AS yes_vote_count " +
       "FROM games g LEFT JOIN ownership o USING (game_id) " +
@@ -577,7 +573,7 @@ public class Game implements java.io.Serializable {
       "GROUP BY 1 ORDER BY g.steam_release DESC LIMIT ? OFFSET ?";
     params.put(paramsIdx++, perPage);
     params.put(paramsIdx++, offset);
-    ResultSet rs = DBCXN.doSelectQuery(selectQuery, params);
+    ResultSet rs = dbCxn.doSelectQuery(selectQuery, params);
     Game[] games = createFromResultSet(rs);
 
     return new PagedQueryResult<Game>(games, count, perPage, page);

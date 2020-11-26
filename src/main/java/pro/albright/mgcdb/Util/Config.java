@@ -15,26 +15,21 @@ import java.util.List;
  * Class to manage retrieving configuration parameters.
  */
 public class Config {
-  private static TomlParseResult config;
-  private static String fileAbsPath;
+  private TomlParseResult config;
 
   /**
    * Get a configuration value.
    * @param path The TOML path to the desired value.
    * @return The desired value as a String (other types not supported yet).
    */
-  public static String get(String path) {
-    if (config == null) {
-      init();
-    }
-
+  public String get(String path) {
     return config.getString(path);
   }
 
   /**
    * Initialize by finding a config file and loading settings.
    */
-  private static void init() {
+  public Config() {
     // Load settings
     List<String> settingsPaths = new ArrayList<>();
 
@@ -52,14 +47,14 @@ public class Config {
 
     // Does a valid file actually exist in one of these places?
     boolean confLoaded = false;
+    String settingsPathAbs = "(no path)";
     for (String settingsPathStr : settingsPaths) {
       Path settingsPath = Path.of(settingsPathStr);
-      String settingsPathAbs = settingsPath.toAbsolutePath().toString();
+      settingsPathAbs = settingsPath.toAbsolutePath().toString();
       File settingsFile = new File(settingsPathAbs);
       if (settingsFile.isFile()) {
         // Looks like we'll use this one.
         System.out.println("Using config file at path " + settingsPathAbs);
-        fileAbsPath = settingsPathAbs;
         try {
           config = Toml.parse(settingsFile.toPath());
           List<TomlParseError> errors = config.errors();
@@ -92,7 +87,7 @@ public class Config {
     };
     for (String requiredParam : requiredParams) {
       if (config.getString(requiredParam) == null) {
-        System.err.printf("Required parameter %s not found in config file at path %s", requiredParam, fileAbsPath);
+        System.err.printf("Required parameter %s not found in config file at path %s", requiredParam, settingsPathAbs);
         System.exit(StatusCodes.REQUIRED_CONFIG_PARAM_MISSING);
       }
     }

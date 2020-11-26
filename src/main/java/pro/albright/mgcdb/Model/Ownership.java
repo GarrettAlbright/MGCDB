@@ -1,6 +1,6 @@
 package pro.albright.mgcdb.Model;
 
-import pro.albright.mgcdb.Util.DBCXN;
+import pro.albright.mgcdb.Util.DBCxn;
 import pro.albright.mgcdb.Util.StatusCodes;
 
 import java.sql.ResultSet;
@@ -17,7 +17,7 @@ import java.util.Map;
  * it's very likely that a user will own hundreds of Steam games. So for
  * performance reasons, we typically just deal with user and game IDs directly.
  */
-public class Ownership implements java.io.Serializable {
+public class Ownership extends Model implements java.io.Serializable {
 
   /**
    * Our ID for this Ownership.
@@ -86,7 +86,7 @@ public class Ownership implements java.io.Serializable {
     String query = "SELECT * FROM ownership WHERE ownership_id = ?";
     Map<Integer, Object> params = new HashMap<>();
     params.put(1, ownershipId);
-    ResultSet rs = DBCXN.doSelectQuery(query, params);
+    ResultSet rs = dbCxn.doSelectQuery(query, params);
     try {
       if (rs.next()) {
         return Ownership.createFromResultSet(rs);
@@ -141,7 +141,7 @@ public class Ownership implements java.io.Serializable {
     String query = "SELECT game_id FROM ownership WHERE user_id = ?";
     Map<Integer, Object> params = new HashMap<>();
     params.put(1, userId);
-    ResultSet rs = DBCXN.doSelectQuery(query, params);
+    ResultSet rs = dbCxn.doSelectQuery(query, params);
 
     ArrayList<Integer> gameIds = new ArrayList<>();
     try {
@@ -173,7 +173,7 @@ public class Ownership implements java.io.Serializable {
     Map<Integer, Object> params = new HashMap<>();
     params.put(1, userId);
     params.put(2, gameId);
-    DBCXN.doUpdateQuery(query, params);
+    dbCxn.doUpdateQuery(query, params);
   }
 
   /**
@@ -189,6 +189,6 @@ public class Ownership implements java.io.Serializable {
     Map<Integer, Object> params = new HashMap<>();
     params.put(1, userId);
     params.put(2, gameId);
-    ownershipId = DBCXN.doInsertQuery(query, params);
+    ownershipId = dbCxn.doInsertQuery(query, params);
   }
 }

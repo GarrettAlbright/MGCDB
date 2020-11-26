@@ -10,9 +10,7 @@ import pro.albright.mgcdb.Model.Game;
 import pro.albright.mgcdb.Model.Ownership;
 import pro.albright.mgcdb.Model.User;
 import pro.albright.mgcdb.Model.Vote;
-import pro.albright.mgcdb.Util.Config;
-import pro.albright.mgcdb.Util.PagedQueryResult;
-import pro.albright.mgcdb.Util.StatusCodes;
+import pro.albright.mgcdb.Util.*;
 import spark.Request;
 import spark.Response;
 import spark.Session;
@@ -31,7 +29,16 @@ public class UserC extends Controller {
   /**
    * ConsuerManager for OpenID authentication
    */
-  private static ConsumerManager consumerMgr = null;
+  private ConsumerManager consumerMgr = null;
+
+  /**
+   * Initialize controller and inject dependencies.
+   *
+   * @param config
+   */
+  public UserC(Config config) {
+    super(config);
+  }
 
   /**
    * Redirect the user to Steam to log in.
@@ -40,14 +47,14 @@ public class UserC extends Controller {
    * @param res
    * @return
    */
-  public static String authenticate(Request req, Response res) {
+  public String authenticate(Request req, Response res) {
     ConsumerManager mgr = getConsumerMgr();
     Session session = req.session();
     try {
       List discoveries = mgr.discover("https://steamcommunity.com/openid");
       DiscoveryInformation discoInfo = mgr.associate(discoveries);
       session.attribute("openid-discoveries", discoInfo);
-      String url = Config.get("url");
+      String url = config.get("url");
       AuthRequest authReq = mgr.authenticate(discoveries, url + "/auth/authenticated");
       res.redirect(authReq.getDestinationUrl(true), HttpStatus.SC_TEMPORARY_REDIRECT);
     }
@@ -64,12 +71,12 @@ public class UserC extends Controller {
    * @param res
    * @return
    */
-  public static String authenticated(Request req, Response res) {
+  public String authenticated(Request req, Response res) {
     ParameterList params = new ParameterList(req.raw().getParameterMap());
     DiscoveryInformation discoInfo = (DiscoveryInformation) req.session().attribute("openid-discoveries");
     ConsumerManager mgr = getConsumerMgr();
     try {
-      String url = Config.get("url");
+      String url = config.get("url");
       String verifyUrl = url + req.raw().getPathInfo();
       VerificationResult verResult = mgr.verify(verifyUrl, params, discoInfo);
       Identifier id = verResult.getVerifiedId();
@@ -100,7 +107,7 @@ public class UserC extends Controller {
    * @param res
    * @return
    */
-  public static String userPage(Request req, Response res) {
+  public String userPage(Request req, Response res) {
     Map<String, Object> model = new HashMap<>();
     User user = req.attribute("user");
     PagedQueryResult<Game> games = user.getOwnedGames(0);
@@ -115,7 +122,7 @@ public class UserC extends Controller {
    * @param res
    * @return
    */
-  public static String userGames(Request req, Response res) {
+  public String userGames(Request req, Response res) {
     int page = 0;
     String pageStr = req.params(":page");
     if (pageStr != null) {
@@ -141,7 +148,7 @@ public class UserC extends Controller {
    * @param req
    * @param res
    */
-  public static String takeVote(Request req, Response res) {
+  public String takeVote(Request req, Response res) {
     User user = (User) req.attribute("user");
     // Confirm the user actually owns this game.
     int ownershipId = Integer.parseInt(req.params(":ownership"));
@@ -182,7 +189,7 @@ public class UserC extends Controller {
       page = "1";
     }
 
-    res.redirect(Config.get("url") + "/user/games/" + page + "?voteSuccessful=1", HttpStatus.SC_SEE_OTHER);
+    res.redirect(config.get("url") + "/user/games/" + page + "?voteSuccessful=1", HttpStatus.SC_SEE_OTHER);
     return null;
   }
 
@@ -193,10 +200,10 @@ public class UserC extends Controller {
    * @param res
    * @return
    */
-  public static String logOut(Request req, Response res) {
+  public String logOut(Request req, Response res) {
     Session session = req.session(false);
     session.invalidate();
-    res.redirect(Config.get("url") + "/?loggedOut=1", HttpStatus.SC_TEMPORARY_REDIRECT);
+    res.redirect(config.get("url") + "/?loggedOut=1", HttpStatus.SC_TEMPORARY_REDIRECT);
     return("");
   }
 
@@ -204,7 +211,7 @@ public class UserC extends Controller {
    * Get the ConsumerManager instance, instantiating it first if necessary.
    * @return
    */
-  private static ConsumerManager getConsumerMgr() {
+  private ConsumerManager getConsumerMgr() {
     if (consumerMgr == null) {
       consumerMgr = new ConsumerManager();
       consumerMgr.setAssociations(new InMemoryConsumerAssociationStore());
@@ -219,12 +226,12 @@ public class UserC extends Controller {
    * @param req
    * @param res
    */
-  public static void ensureNotAuthenticated(Request req, Response res) {
+  public void ensureNotAuthenticated(Request req, Response res) {
    User user = req.attribute("user");
    if (user != null) {
      // The user is already authenticated. Don't try to authenticate them again.
      // Redirect to the user page.
-     res.redirect(Config.get("url") + "/user?alreadyAuthenticated=1", HttpStatus.SC_TEMPORARY_REDIRECT);
+     res.redirect(config.get("url") + "/user?alreadyAuthenticated=1", HttpStatus.SC_TEMPORARY_REDIRECT);
      halt();
    }
   }
@@ -239,10 +246,10 @@ public class UserC extends Controller {
    * @param req
    * @param res
    */
-  public static void ensureAuthenticated(Request req, Response res) {
+  public void ensureAuthenticated(Request req, Response res) {
     User user = req.attribute("user");
     if (user == null) {
-      res.redirect(Config.get("url") + "/auth", HttpStatus.SC_TEMPORARY_REDIRECT);
+      res.redirect(config.get("url") + "/auth", HttpStatus.SC_TEMPORARY_REDIRECT);
       halt();
     }
   }
