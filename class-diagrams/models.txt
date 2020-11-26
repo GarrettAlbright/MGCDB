@@ -1,0 +1,71 @@
+@startuml
+
+class Game {
+  {static} int perPage
+  enum GamePropStatus
+  enum GameFilterMode
+  int gameId
+  String title
+  Game.GamePropStatus mac;
+  Game.GamePropStatus sixtyFour;
+  Game.GamePropStatus silicon;
+  Date created;
+  Date steamUpdated;
+  LocalDate steamReleaseDate;
+  Ownership ownership;
+  int voteCount;
+  int yesVoteCount;
+  {static} Game createFromSteamAppBean()
+  {static} int GetNewestGameSteamId()
+  {static} Game[] getNewestGamesFromSteam()
+  {static} boolean existsBySteamId()
+  void save()
+  boolean updateFromSteam()
+  {static} Game[] getGamesToUpdate()
+  {static} Game[] createFromResultSet()
+  {static} int[] getGameIdsBySteamIds()
+  {static} Game getById()
+  {static} PagedQueryResult<Game> getByReleaseDate()
+  int getYesVoteAsPercentage()
+}
+
+class User {
+  int userId
+  long steamId
+  String nickname
+  String avatarHash
+  Date lastGameSynch
+  {static} User authWithSteamId()
+  {static} User getBySteamId()
+  {static} User getById()
+  {static} User createFromResultSet()
+  String getAvatarUrl()
+  void bumpAuthDate()
+  void updateOwnedGames()
+  PagedQueryResult<Game> getOwnedGames()
+  void save()
+  {static} User[] getUsersNeedingOwnershipUpdate()
+}
+
+class Ownership {
+  int ownershipId
+  int userId
+  int gameId
+  {static} Ownership getById()
+  {static} Ownership createFromResultSet()
+  {static} int[] getOwnedGamesInDb()
+  {static} void delete()
+  void save()
+}
+
+class Vote {
+  int voteId
+  int ownershipId
+  boolean vote
+  {static} Vote getByOwnershipId()
+  {static} Vote createFromResultSet()
+  void delete()
+  void save()
+}
+
+@enduml

@@ -1,0 +1,81 @@
+@startuml
+class Config {
+  {static} TomlParseResult config
+  {static} String fileAbsPath
+  {static} String get()
+  {static} void init()
+}
+
+class Escape {
+  {static} String html()
+  {static} String url()
+}
+
+class StatusCodes {
+  {static} int NO_TASK_HANDLER
+  {static} int BAD_TASK_PARAM
+  {static} int GENERAL_SQL_ERROR
+  {static} int NO_DB_FILE
+  {static} int NO_CONFIG_FILE
+  {static} int CONFIG_FILE_CANT_BE_PARSED
+  {static} int REQUIRED_CONFIG_PARAM_MISSING
+  {static} int GENERAL_OUTGOING_NETWORK_ERROR
+  {static} int URI_BUILDING_FAILED
+  {static} int GENERAL_OPENID_ERROR
+  {static} int GENERAL_ESCAPING_ERROR
+}
+
+class PagedQueryResult<T> {
+  int totalResults
+  int perPage
+  int currentPageZeroBased
+  T[] results
+  PagedQueryResult PagedQueryResult()
+  int getTotalPages()
+  int getCurrentPageOneBased()
+}
+
+class DBCXN {
+  {static} Connection cxn
+  {static} Connection readOnlyCxn
+  {static} String path
+  {static} void init()
+  {static} void initReadOnlyCxn()
+  {static} Connection getCxn()
+  {static} Connection getReadOnlyCxn()
+  {static} void createIfNotExists()
+  {static} void ensurePath()
+  {static} Date parseTimestamp()
+  {static} int doInsertQuery()
+  {static} void doUpdateQuery()
+  {static} ResultSet doSelectQuery()
+  {static} int getSingleIntResult()
+  {static} int doInsertOrUpdateQuery()
+  {static} PreparedStatement prepareStatement()
+}
+
+class SteamCxn {
+  String steamKey
+  String userAgentString
+  SteamCxn SteamCxn()
+  Game[] getNewGames()
+  GetAppDetailsApp() getUpdatedGameDetails()
+  Game.GamePropStatus getCatalinaStatus()
+  PlayerSummary getUserInfo()
+  int[] getOwnedGamesInSteam()
+  URI buildApiUri()
+  <T> makeRequestAndReturnBean()
+  String fetchRawResponseBody()
+}
+
+class Tasks {
+  void invoke()
+  void initDb()
+  void newGames()
+  void updateGames()
+  void updateGame()
+  void updateDb()
+  void updateOwnership()
+  Map<String, String> getCurrentCreateQueries()
+}
+@enduml

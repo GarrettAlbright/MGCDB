@@ -1,0 +1,31 @@
+@startuml
+
+class Controller {
+  {static} VelocityTemplateEngine tple
+  {static} String render()
+  {static} void fourOhFour()
+  {static} VelocityTemplateEngine getVelocityTemplateEngine()
+}
+
+class GameC {
+  {static} Pattern queryPattern
+  {static} String gamesByRelease()
+  {static} String front()
+  {static} HashMap<String, Object> getModelForGameList()
+}
+
+class UserC {
+  {static} String authenticate()
+  {static} String authenticated()
+  {static} String userPage()
+  {static} String userGames()
+  {static} String takeVote()
+  {static} String logOut()
+  {static} void ensureNotAuthenticated()
+  {static} void ensureAuthenticated()
+}
+
+Controller <|-- GameC
+Controller <|-- UserC
+
+@enduml

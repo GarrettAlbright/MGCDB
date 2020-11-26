@@ -16,3 +16,9 @@ buildNumber.properties
 .settings
 .idea
 
+# Ignore rendered class diagrams
+!/class-diagrams
+/class-diagrams/*
+!/class-diagrams/*.txt
+!/class-diagrams/*.md
+
