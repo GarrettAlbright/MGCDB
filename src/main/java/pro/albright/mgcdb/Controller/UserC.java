@@ -1,4 +1,4 @@
-package pro.albright.mgcdb.Controllers;
+package pro.albright.mgcdb.Controller;
 
 import org.apache.http.HttpStatus;
 import org.openid4java.consumer.*;

@@ -1,4 +1,4 @@
-package pro.albright.mgcdb.Controllers;
+package pro.albright.mgcdb.Controller;
 
 import org.apache.velocity.app.VelocityEngine;
 import pro.albright.mgcdb.Model.User;

@@ -2,8 +2,8 @@ package pro.albright.mgcdb;
 
 import java.sql.SQLException;
 
-import pro.albright.mgcdb.Controllers.GameC;
-import pro.albright.mgcdb.Controllers.UserC;
+import pro.albright.mgcdb.Controller.GameC;
+import pro.albright.mgcdb.Controller.UserC;
 import pro.albright.mgcdb.Model.Model;
 import pro.albright.mgcdb.Model.User;
 import pro.albright.mgcdb.Util.Config;

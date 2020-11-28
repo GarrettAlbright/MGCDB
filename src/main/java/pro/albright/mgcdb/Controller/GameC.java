@@ -1,10 +1,8 @@
-package pro.albright.mgcdb.Controllers;
+package pro.albright.mgcdb.Controller;
 
 import pro.albright.mgcdb.Model.Game;
 import pro.albright.mgcdb.Util.Config;
-import pro.albright.mgcdb.Util.DBCxn;
 import pro.albright.mgcdb.Util.PagedQueryResult;
-import pro.albright.mgcdb.Util.SteamCxn;
 import spark.Request;
 import spark.Response;
 
