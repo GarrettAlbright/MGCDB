@@ -9,6 +9,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 
 public class DBCxn {
@@ -114,16 +115,11 @@ public class DBCxn {
    * @throws SQLException If a SQL-related error occurred.
    */
   public void createIfNotExists(boolean deleteIfExists) throws SQLException {
-    File dbFile = new File(path);
-    if (dbFile.exists() && deleteIfExists) {
-      if (cxn != null && !cxn.isClosed()) {
-        cxn.close();
-      }
-      if (readOnlyCxn != null && !readOnlyCxn.isClosed()) {
-        readOnlyCxn.close();
-      }
-      dbFile.delete();
+    if (deleteIfExists) {
+      delete();
     }
+
+    File dbFile = new File(path);
     if (!dbFile.exists()) {
       try {
         dbFile.createNewFile();
@@ -134,7 +130,30 @@ public class DBCxn {
       }
     }
   }
-  
+
+  /**
+   * Delete the database file.
+   */
+  public void delete() {
+    try {
+      if (cxn != null && !cxn.isClosed()) {
+        cxn.close();
+      }
+      if (readOnlyCxn != null && !readOnlyCxn.isClosed()) {
+        readOnlyCxn.close();
+      }
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+      System.exit(StatusCodes.GENERAL_SQL_ERROR);
+    }
+
+    File dbFile = new File(path);
+    if (dbFile.exists()) {
+      dbFile.delete();
+    }
+  }
+
   /**
    * Parse a timestamp.
    *
@@ -301,5 +320,96 @@ public class DBCxn {
       System.exit(StatusCodes.GENERAL_SQL_ERROR);
     }
     return stmt;
+  }
+
+  /**
+   * Initialize the database by executing the table creation queries.
+   */
+  public void initializeDb() {
+    Statement stmt = null;
+    try {
+      Connection cxn = getCxn();
+      stmt = cxn.createStatement();
+      Map<String, String> commands = getCurrentCreateQueries();
+
+      stmt.addBatch(commands.get("createGamesQuery"));
+      stmt.addBatch(commands.get("createGamesTriggerQuery"));
+
+      stmt.addBatch(commands.get("createUsersQuery"));
+      stmt.addBatch(commands.get("createUsersTriggerQuery"));
+
+      stmt.addBatch(commands.get("createOwnershipQuery"));
+
+      stmt.addBatch(commands.get("createVotesQuery"));
+
+      stmt.executeBatch();
+      cxn.commit();
+    }
+    catch (SQLException throwables) {
+      throwables.printStackTrace();
+      System.exit(StatusCodes.GENERAL_SQL_ERROR);
+    }
+  }
+
+  /**
+   * Returns SQL commands to create the current state of the DB tables.
+   * @return SQL commands in a Map<String, String>.
+   */
+  public Map<String, String> getCurrentCreateQueries() {
+    Map<String, String> commands = new HashMap<>();
+    commands.put("createGamesQuery", "CREATE TABLE IF NOT EXISTS games ( " +
+      // Note that id has to be an INTEGER, not UNSIGNED INTEGER, in order for
+      // it to be a proper alias for the SQLite rowid.
+      // https://www.sqlite.org/lang_createtable.html#rowid
+      "game_id INTEGER PRIMARY KEY, " +
+      "steam_id INTEGER UNIQUE, " +
+      // SQLite does not actually enforce field character lengths but I'm gonna
+      // use them anyway
+      "title VARCHAR(255) NOT NULL DEFAULT '', " +
+      // Game.GamePropStatus enum - Mac compatibility
+      "mac INTEGER NOT NULL DEFAULT 0, " +
+      // Game.GamePropStatus enum - 64-bit Intel (Catalina) compatibility
+      "sixtyfour INTEGER NOT NULL DEFAULT 0, " +
+      // Game.GamePropStatus enum - Apple Silicon compatibility
+      "silicon INTEGER NOT NULL DEFAULT 0, " +
+      "created TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, " +
+      "updated TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, " +
+      "steam_release TEXT DEFAULT '0000-01-01', " +
+      "steam_updated TEXT NOT NULL DEFAULT '0000-01-01 00:00:00')");
+    commands.put("createGamesTriggerQuery", "CREATE TRIGGER IF NOT EXISTS update_games " +
+      "AFTER UPDATE ON games FOR EACH ROW BEGIN " +
+      "UPDATE games SET updated = CURRENT_TIMESTAMP WHERE game_id = OLD.game_id; " +
+      "END;");
+
+    commands.put("createUsersQuery", "CREATE TABLE IF NOT EXISTS users ( " +
+      "user_id INTEGER PRIMARY KEY, " +
+      "steam_user_id INTEGER UNIQUE, " +
+      "nickname VARCHAR(255) NOT NULL DEFAULT '', " +
+      "avatar_hash VARCHAR(255) NOT NULL DEFAULT '', " +
+      "last_auth TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, " +
+      "last_game_synch TEXT NOT NULL DEFAULT '0000-01-01 00:00:00', " +
+      "created TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, " +
+      "updated TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)");
+    commands.put("createUsersTriggerQuery", "CREATE TRIGGER IF NOT EXISTS update_users " +
+      "AFTER UPDATE ON users FOR EACH ROW BEGIN " +
+      "UPDATE users SET updated = CURRENT_TIMESTAMP WHERE user_id = OLD.user_id; " +
+      "END;");
+
+    commands.put("createOwnershipQuery", "CREATE TABLE IF NOT EXISTS ownership (" +
+      "ownership_id INTEGER PRIMARY KEY, " +
+      "user_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE, " +
+      "game_id INTEGER NOT NULL REFERENCES games(game_id) ON DELETE CASCADE, " +
+      "created TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)");
+
+    // Note that we do not make ownership_id UNIQUE because in the future there
+    // may be more than one type of vote (in which case a "type" column will
+    // need to be added).
+    commands.put("createVotesQuery", "CREATE TABLE IF NOT EXISTS votes (" +
+      "vote_id INTEGER PRIMARY KEY, " +
+      "ownership_id INTEGER NOT NULL REFERENCES ownership(ownership_id) ON DELETE CASCADE, " +
+      "vote INTEGER NOT NULL, " +
+      "created TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)");
+
+    return commands;
   }
 }
