@@ -12,19 +12,25 @@ import pro.albright.mgcdb.Model.Game;
 import pro.albright.mgcdb.SteamAPIModel.*;
 import spark.utils.IOUtils;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.nio.file.Path;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 /**
  * Class to manage making requests and handling responses with the Steam API.
  */
 public class SteamCxn {
 
+  /**
+   * Directory to log all responses, for debugging purposes. If null, no
+   * logging will be done.
+   */
+  private final String logDir = "/tmp/mgcdb-log";
   private final String steamKey;
   // Identify as a Mac so that Steam tells us if a game is Catalina-compatible
   private final String userAgentString = "MGCDB/0.1 (Macintosh; +https://github.com/GarrettAlbright/MGCDB)";
@@ -177,7 +183,7 @@ public class SteamCxn {
    * @param <T> Instance of the bean
    * @return A bean of the given type
    */
-  private <T> T makeRequestAndReturnBean(URI uri, Class<T> beanClass) {
+  protected <T> T makeRequestAndReturnBean(URI uri, Class<T> beanClass) {
     String json = fetchRawResponseBody(uri);
 
     T responseBean = null;
@@ -196,7 +202,7 @@ public class SteamCxn {
    * @param uri The URI to make the request to.
    * @return The JSON as a String.
    */
-  private String fetchRawResponseBody(URI uri) {
+  protected String fetchRawResponseBody(URI uri) {
     int statusCode = -1;
     String json = "";
     try {
@@ -221,6 +227,33 @@ public class SteamCxn {
       System.err.printf("Unexpected status code %s while making Steam request.%n", statusCode);
       System.exit(StatusCodes.GENERAL_OUTGOING_NETWORK_ERROR);
     }
+
+    if (logDir != null) {
+      // Log this response for later testing
+      Path logDirPath = Path.of(logDir).toAbsolutePath();
+      File logDirFile = logDirPath.toFile();
+      if (logDirFile.isDirectory() && logDirFile.canWrite()) {
+        // Format of filename is the URL (with path-invalid characters replaced)
+        String filename = uriToLogFilename(uri);
+        File output = new File(logDirFile, filename);
+        try {
+          FileWriter fw = new FileWriter(output);
+          fw.write(json);
+          fw.close();
+        }
+        catch (IOException e) {
+          System.err.printf("Attempt to log output of request to %s failed as output file could not be written.%n", uri.toASCIIString());
+        }
+      }
+      else {
+        System.err.printf("Attempt to log output of request to %s failed as output directory %s is not writable.%n", uri.toASCIIString(), logDir);
+      }
+    }
+
     return json;
+  }
+
+  protected String uriToLogFilename(URI uri) {
+    return uri.toASCIIString().replace("/", "-").replace(":", "-") + ".txt";
   }
 }

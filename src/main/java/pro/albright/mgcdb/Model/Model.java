@@ -5,7 +5,14 @@ import pro.albright.mgcdb.Util.SteamCxn;
 
 public class Model {
 
+  /**
+   * An injected DBCxn utility class instance..
+   */
   protected static DBCxn dbCxn;
+
+  /**
+   * An injected SteamCxn utility class instance.
+   */
   protected static SteamCxn steamCxn;
 
   public static void setDbCxn(DBCxn dbCxn) {

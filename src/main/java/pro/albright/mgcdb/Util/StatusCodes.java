@@ -26,6 +26,8 @@ public class StatusCodes {
   public static final int GENERAL_OUTGOING_NETWORK_ERROR = 30;
   // Building a URI failed.
   public static final int URI_BUILDING_FAILED = 31;
+  // Loading a file of test data (mocked request) failed.
+  public static final int MOCK_RESPONSE_FAILED = 32;
 
   /* OpenID issues */
   // General OpenID error
