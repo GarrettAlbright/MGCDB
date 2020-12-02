@@ -277,9 +277,13 @@ public class Game extends Model implements java.io.Serializable {
    * @param limit Max number of new games to fetch.
    * @return Array of Games.
    */
-  public static Game[] getNewGamesFromSteam(int limit) {
+  public static Game[] getAndSaveNewGamesFromSteam(int limit) {
     int lastAppId = Game.getNewestGameSteamId();
-    return steamCxn.getNewGames(lastAppId, limit);
+    Game[] games = steamCxn.getNewGames(lastAppId, limit);
+    for (Game game : games) {
+      game.save();
+    }
+    return games;
  }
 
   /**

@@ -104,10 +104,9 @@ public class Tasks {
    * @param limit Max number of new games to fetch.
    */
   private static void newGames(int limit) {
-    Game[] newGames = Game.getNewGamesFromSteam(limit);
+    Game[] newGames = Game.getAndSaveNewGamesFromSteam(limit);
     for (Game newGame : newGames) {
-      System.out.printf("Saving new game %s (%d)%n", newGame.getTitle(), newGame.getSteamId());
-      newGame.save();
+      System.out.printf("Saved new game %s (%d)%n", newGame.getTitle(), newGame.getSteamId());
     }
     System.out.println("Finished fetching new games.");
   }
