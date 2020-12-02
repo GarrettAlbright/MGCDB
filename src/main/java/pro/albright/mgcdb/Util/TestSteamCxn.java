@@ -12,6 +12,11 @@ public class TestSteamCxn extends SteamCxn {
    */
   private Path testDataDir;
 
+  public TestSteamCxn() {
+    super("test");
+    testDataDir = Paths.get("test-data").toAbsolutePath();
+  }
+
   public TestSteamCxn(String steamKey) {
     super("test");
     testDataDir = Paths.get("test-data").toAbsolutePath();

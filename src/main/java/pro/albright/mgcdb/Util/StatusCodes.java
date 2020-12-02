@@ -6,6 +6,8 @@ public class StatusCodes {
   public static final int NO_TASK_HANDLER = 1;
   // A parameter passed to a task was missing or out of bounds
   public static final int BAD_TASK_PARAM = 2;
+  // Something went wrong specifically in the context of a test
+  public static final int TEST_INIT_ERROR = 3;
 
   /* DB/SQL-related codes */
   // General SQL error
