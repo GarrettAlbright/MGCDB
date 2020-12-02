@@ -117,12 +117,9 @@ public class Tasks {
    * @param limit Max number of games to update.
    */
   public static void updateGames(int limit) {
-    Game[] oldGames = Game.getGamesToUpdate(limit);
-    for (Game oldGame : oldGames) {
-      System.out.printf("Updating game %s (Our ID: %d, Steam ID: %d)%n", oldGame.getTitle(), oldGame.getGameId(), oldGame.getSteamId());
-      if (!oldGame.updateFromSteam()) {
-        System.out.printf("/!\\ Game %s (%d) did not successfully update (API call failed?)%n", oldGame.getTitle(), oldGame.getSteamId());
-      }
+    Game[] games = Game.updateGamesFromSteam(limit);
+    for (Game game : games) {
+      System.out.printf("Updated game %s (Our ID: %d, Steam ID: %d)%n", game.getTitle(), game.getGameId(), game.getSteamId());
     }
   }
 

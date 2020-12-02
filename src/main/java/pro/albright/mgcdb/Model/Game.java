@@ -369,6 +369,7 @@ public class Game extends Model implements java.io.Serializable {
       // This happens for 8980 (Borderlands Game of the Year) which has a blank
       // release date in the JSON for some reason.
       System.err.printf("Error parsing date for %d while updating game from Steam. Date as string is \"%s\"%n", this.getSteamId(), updatedGame.getRelease_date().getDate());
+      return false;
     }
     Boolean mac = updatedGame.getPlatforms().get("mac");
     if (mac != null) {
@@ -391,7 +392,7 @@ public class Game extends Model implements java.io.Serializable {
    * @param limit The maximum number of games to load.
    * @return An array of Games.
    */
-  public static Game[] getGamesToUpdate(int limit) {
+  public static Game[] getGamesToUpdateFromSteam(int limit) {
     String query = "SELECT * FROM games WHERE steam_updated < datetime('now', '-1 day') ORDER BY steam_updated ASC LIMIT ?";
     Map<Integer, Object> params = new HashMap<>();
     params.put(1, limit);
@@ -399,6 +400,14 @@ public class Game extends Model implements java.io.Serializable {
     ResultSet rs = dbCxn.doSelectQuery(query, params);
 
     return createFromResultSet(rs);
+  }
+
+  public static Game[] updateGamesFromSteam(int limit) {
+    Game[] gamesToUpdate = getGamesToUpdateFromSteam(limit);
+    for (Game game : gamesToUpdate) {
+      game.updateFromSteam();
+    }
+    return gamesToUpdate;
   }
 
   /**
