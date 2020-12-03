@@ -163,6 +163,30 @@ public class Ownership extends Model implements java.io.Serializable {
   }
 
   /**
+   * Load an Ownership instance by userId and gameId.
+   *
+   * @param userId
+   * @param gameId
+   * @return Ownership object.
+   */
+  static public Ownership get(int userId, int gameId) {
+    String query = "SELECT * FROM ownership WHERE user_id = ? AND game_id = ?";
+    Map<Integer, Object> params = new HashMap<>();
+    params.put(1, userId);
+    params.put(2, gameId);
+    ResultSet rs = dbCxn.doSelectQuery(query, params);
+    try {
+      if (rs.next()) {
+        return Ownership.createFromResultSet(rs);
+      }
+    }
+    catch (Exception e) {
+      return null;
+    }
+    return null;
+  }
+
+  /**
    * Delete an Ownership instance by userId and gameId.
    *
    * @param userId

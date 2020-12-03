@@ -1,10 +1,8 @@
 package pro.albright.mgcdb.Model;
 
 import pro.albright.mgcdb.SteamAPIModel.PlayerSummary;
-import pro.albright.mgcdb.Util.DBCxn;
 import pro.albright.mgcdb.Util.PagedQueryResult;
 import pro.albright.mgcdb.Util.StatusCodes;
-import pro.albright.mgcdb.Util.SteamCxn;
 
 import java.io.Serializable;
 import java.sql.ResultSet;

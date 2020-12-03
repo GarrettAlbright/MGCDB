@@ -1,45 +1,16 @@
 package pro.albright.mgcdb.Model;
 
 import junit.framework.Assert;
-import junit.framework.TestCase;
-import pro.albright.mgcdb.Util.Config;
-import pro.albright.mgcdb.Util.DBCxn;
-import pro.albright.mgcdb.Util.TestSteamCxn;
 
 import java.sql.SQLException;
 import java.time.LocalDate;
 
-public class GameTest extends TestCase {
-
-  protected DBCxn dbCxn;
-  protected TestSteamCxn steamCxn;
-  protected Config config;
-
-  private int gameCount = 25;
+public class GameTest extends MGCDBTest {
 
   protected void setUp() throws SQLException {
-    config = new Config();
-    String testDbLocation = config.get("test_db_location");
-    if (testDbLocation == null) {
-      testDbLocation = config.get("db_location") + ".test";
-    }
-
-    dbCxn = new DBCxn(testDbLocation);
-    dbCxn.createIfNotExists(true);
-    dbCxn.initializeDb();
-
-    steamCxn = new TestSteamCxn();
-
-    Game.setDbCxn(dbCxn);
-    Game.setSteamCxn(steamCxn);
+    super.setUp();
 
     Game.getAndSaveNewGamesFromSteam(gameCount);
-  }
-
-  @Override
-  protected void tearDown() throws Exception {
-    super.tearDown();
-    dbCxn.delete();
   }
 
   public void testGetNewGamesFromSteam() {

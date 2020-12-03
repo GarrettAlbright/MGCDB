@@ -45,7 +45,7 @@ public class Vote extends Model implements Serializable {
     this.ownershipId = ownershipId;
   }
 
-  public boolean isVote() {
+  public boolean getVote() {
     return vote;
   }
 

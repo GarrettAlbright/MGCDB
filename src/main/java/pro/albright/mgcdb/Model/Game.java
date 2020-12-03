@@ -592,6 +592,26 @@ public class Game extends Model implements java.io.Serializable {
     return new PagedQueryResult<Game>(games, count, perPage, page);
   }
 
+  public void updateVoteCounts() {
+    String query = "SELECT COUNT(v.vote_id) AS vote_count, SUM(v.vote) AS yes_vote_count " +
+      "FROM ownership o " +
+      "INNER JOIN votes v USING (ownership_id) " +
+      "WHERE o.game_id = ?";
+    Map<Integer, Object> params = new HashMap<>();
+    params.put(1, gameId);
+    ResultSet rs = dbCxn.doSelectQuery(query, params);
+    try {
+      if (rs.next()) {
+        voteCount = rs.getInt("vote_count");
+        yesVoteCount = rs.getInt("yes_vote_count");
+      }
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+      System.exit(StatusCodes.GENERAL_SQL_ERROR);
+    }
+  }
+
   /**
    * Return the yes vote count for this game as a percentage of total votes.
    *
