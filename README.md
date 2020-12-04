@@ -92,6 +92,9 @@ Resynchronizes the game ownership records for a user; in other words, adds new g
 11. Set up your web server to reverse proxy the web daemon and serve MGCDB's static files (see "Web daemon" above).
 12. Configure a cron job task to run the `newgames` and `updategames` tasks periodically (preferably in that order). See the "Tasks" section above for more information.
 
+## Tests
+
+The project has a few tests for common operations, but testing is not currently comprehensive. (TDD us a lot easier to do when you completely understand the language and aren't in long-term "let's just try this and see if it works" mode. Sorry.) Tests can be run with `mvn test`. Testing of operations that involve fetching data from Steam will use a subclass of the standard "SteamCxn" class which will fetch JSON responses from static files in the "test-data" directory instead.
 
 ## Legal nonsense
 
