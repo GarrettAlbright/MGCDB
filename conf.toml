@@ -1,8 +1,14 @@
 # MGCDB configuration file. Copy to a desired location and edit.
 # See instructions in README.md for more information.
 
-# Location where the database file should be
-db_location = "~/mgcdb.sqlite"
+# Location where the database file should be. The directory should be writable
+# by the user account under which the tasks or the daemon are run.
+db_location = "/var/db/mgcdb/mgcdb.sqlite"
+
+# Location where the test database file should be. This database file is used
+# only when tests are run. If unset, the parameter from db_location will be
+# used, with ".test" appended.
+test_db_location = "/tmp/mgcdb-test.sqlite"
 
 # Steam API key
 # Get this at https://steamcommunity.com/dev/apikey
