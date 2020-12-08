@@ -18,7 +18,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -30,7 +29,8 @@ public class SteamCxn {
    * Directory to log all responses, for debugging purposes. If null, no
    * logging will be done.
    */
-  private final String logDir = "/tmp/mgcdb-log";
+  private final String logDir = null;
+
   private final String steamKey;
   // Identify as a Mac so that Steam tells us if a game is Catalina-compatible
   private final String userAgentString = "MGCDB/0.1 (Macintosh; +https://github.com/GarrettAlbright/MGCDB)";
