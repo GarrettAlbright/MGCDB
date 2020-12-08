@@ -43,6 +43,14 @@ footer {
   font-size: .6666em;
 }
 
+nav.pager {
+  text-align: center;
+}
+
+nav.pager > * {
+  margin: 0 10px;
+}
+
 @media screen and (min-width: 900px) {
   body {
     width: 900px;

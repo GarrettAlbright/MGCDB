@@ -43,9 +43,5 @@
       #end
     </tbody>
   </table>
-  <ul>
-  #foreach ($page in [1..$games.TotalPages])
-  <li>#if ($page == $games.CurrentPageOneBased)$page#else<a href="$linkBase/games/$page">$page</a>#end</li>
-  #end
-  </ul>
+  #parse("gamePager.vm")
 #end

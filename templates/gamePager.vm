@@ -1,0 +1,9 @@
+<nav class="pager">
+  #set ($prev = $games.CurrentPageOneBased - 1)
+  #set ($next = $games.CurrentPageOneBased + 1)
+  #if ($games.CurrentPageOneBased == 1) <span>&#9664; First</span> #elseif ($filter == "all") <a href="$linkBase/"> &#9664; First </a> #else <a href="$linkBase/games/$filter"> &#9664; First </a> #end
+  #if ($games.CurrentPageOneBased == 1) <span>&#9664; Prev</span> #elseif ($filter == "all") <a href="$linkBase/games/$prev"> &#9664; Prev </a> #else <a href="$linkBase/games/$filter/$prev"> &#9664; Prev </a> #end
+  <span class="curr-page"> $games.CurrentPageOneBased / $games.TotalPages</span>
+  #if ($games.CurrentPageOneBased == $games.TotalPages) <span>&#9658; Next</span> #elseif ($filter == "all") <a href="$linkBase/games/$next"> &#9658; Next </a> #else <a href="$linkBase/games/$filter/$next"> &#9658; Next </a> #end
+  #if ($games.CurrentPageOneBased == $games.TotalPages) <span>&#9658; Last</span> #elseif ($filter == "all") <a href="$linkBase/games/$games.TotalPages"> &#9658; Last </a> #else <a href="$linkBase/games/$filter/$games.TotalPages"> &#9658; Last </a> #end
+</nav>
