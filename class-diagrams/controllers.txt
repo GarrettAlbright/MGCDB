@@ -1,28 +1,34 @@
 @startuml
 
 class Controller {
-  {static} VelocityTemplateEngine tple
-  {static} String render()
-  {static} void fourOhFour()
-  {static} VelocityTemplateEngine getVelocityTemplateEngine()
+  VelocityTemplateEngine tple
+  Config config
+  Controller()
+  String render()
+  void fourOhFour()
+  VelocityTemplateEngine getVelocityTemplateEngine()
 }
 
 class GameC {
-  {static} Pattern queryPattern
-  {static} String gamesByRelease()
-  {static} String front()
-  {static} HashMap<String, Object> getModelForGameList()
+  Pattern queryPattern
+  GameC()
+  String gamesByRelease()
+  String front()
+  HashMap<String, Object> getModelForGameList()
 }
 
 class UserC {
-  {static} String authenticate()
-  {static} String authenticated()
-  {static} String userPage()
-  {static} String userGames()
-  {static} String takeVote()
-  {static} String logOut()
-  {static} void ensureNotAuthenticated()
-  {static} void ensureAuthenticated()
+  ConsumerMgr consumerMgr
+  UserC()
+  String authenticate()
+  String authenticated()
+  String userPage()
+  String userGames()
+  String takeVote()
+  String logOut()
+  ConsumerManager getConsumerMgr()
+  void ensureNotAuthenticated()
+  void ensureAuthenticated()
 }
 
 Controller <|-- GameC

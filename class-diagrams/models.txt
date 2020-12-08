@@ -1,4 +1,10 @@
 @startuml
+class Model {
+  {static} DBCxn dbCxn
+  {static} SteamCxn steamCxn
+  {static} setDbCxn()
+  {static} void setSteamCxn()
+}
 
 class Game {
   {static} int perPage
@@ -6,26 +12,29 @@ class Game {
   enum GameFilterMode
   int gameId
   String title
-  Game.GamePropStatus mac;
-  Game.GamePropStatus sixtyFour;
-  Game.GamePropStatus silicon;
-  Date created;
-  Date steamUpdated;
-  LocalDate steamReleaseDate;
-  Ownership ownership;
-  int voteCount;
-  int yesVoteCount;
+  Game.GamePropStatus mac
+  Game.GamePropStatus sixtyFour
+  Game.GamePropStatus silicon
+  Date created
+  Date updated
+  Date steamUpdated
+  LocalDate steamReleaseDate
+  Ownership ownership
+  int voteCount
+  int yesVoteCount
   {static} Game createFromSteamAppBean()
   {static} int GetNewestGameSteamId()
-  {static} Game[] getNewestGamesFromSteam()
+  {static} Game[] getAndSaveNewGamesFromSteam()
   {static} boolean existsBySteamId()
   void save()
   boolean updateFromSteam()
-  {static} Game[] getGamesToUpdate()
+  {static} Game[] getGamesToUpdateFromSteam()
+  {static} Game[] updateGamesFromSteam()
   {static} Game[] createFromResultSet()
   {static} int[] getGameIdsBySteamIds()
   {static} Game getById()
   {static} PagedQueryResult<Game> getByReleaseDate()
+  void updateVoteCounts()
   int getYesVoteAsPercentage()
 }
 
@@ -51,9 +60,11 @@ class Ownership {
   int ownershipId
   int userId
   int gameId
+  Vote vote
   {static} Ownership getById()
   {static} Ownership createFromResultSet()
   {static} int[] getOwnedGamesInDb()
+  {static} Ownership get()
   {static} void delete()
   void save()
 }
@@ -68,4 +79,8 @@ class Vote {
   void save()
 }
 
+Model <|-- Game
+Model <|-- User
+Model <|-left- Vote
+Model <|-right- Ownership
 @enduml
